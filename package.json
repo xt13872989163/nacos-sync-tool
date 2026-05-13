@@ -1,6 +1,6 @@
 {
   "name": "nacos-sync-tool",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Desktop client for syncing Nacos configuration across clusters.",
   "productName": "Nacos Sync Tool",
   "main": "out/main/index.js",
@@ -11,8 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
-    "pack:win": "electron-builder --win portable",
-    "pack:mac": "electron-builder --mac dmg zip"
+    "pack:win": "npm run build && electron-builder --win portable",
+    "pack:mac": "npm run build && electron-builder --mac dmg zip"
   },
   "dependencies": {},
   "devDependencies": {

@@ -45,7 +45,7 @@ async function postBridge<T>(path: string, body: unknown, fallback: T): Promise<
     return payload as T;
   } catch (error) {
     if (error instanceof TypeError) {
-      return fallback;
+      throw new Error(`本地调试桥未启动，无法执行请求：${path}`);
     }
 
     throw error;

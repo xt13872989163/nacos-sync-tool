@@ -9,6 +9,7 @@ interface HttpRequest {
   url: string;
   params?: Record<string, unknown>;
   data?: unknown;
+  headers?: Record<string, string>;
 }
 
 export interface HttpClient {
@@ -47,21 +48,47 @@ export class NacosClient {
   }
 
   async testConnection(): Promise<boolean> {
-    await this.authenticate();
     await this.listNamespaces();
     return true;
   }
 
   async listNamespaces(): Promise<NacosNamespace[]> {
+    try {
+      const response = await this.http.request<unknown>({
+        method: 'GET',
+        url: '/nacos/v1/console/namespaces'
+      });
+
+      const namespaces = normalizeNamespaces(response.data);
+      return namespaces.length > 0 ? namespaces : [publicNamespace()];
+    } catch (error) {
+      if (!shouldRetryNamespaceWithAuthentication(error)) {
+        throw error;
+      }
+    }
+
     await this.ensureAuthenticated();
 
-    const response = await this.http.request<unknown>({
-      method: 'GET',
-      url: '/nacos/v1/console/namespaces',
-      params: this.authParams()
-    });
+    try {
+      const response = await this.http.request<unknown>({
+        method: 'GET',
+        url: '/nacos/v1/console/namespaces',
+        params: this.authParams(),
+        headers: this.authHeaders()
+      });
 
-    return normalizeNamespaces(response.data);
+      const namespaces = normalizeNamespaces(response.data);
+      return namespaces.length > 0 ? namespaces : [publicNamespace()];
+    } catch (error) {
+      if (!isHttpStatus(error, 500)) {
+        throw error;
+      }
+
+      // Some Nacos 2.2.x deployments return 500 from the console namespace API
+      // while config OpenAPI calls still work with the same access token.
+      await this.probePublicNamespace();
+      return [publicNamespace()];
+    }
   }
 
   async createNamespace(namespaceId: string, namespaceName = namespaceId, description = ''): Promise<void> {
@@ -75,7 +102,8 @@ export class NacosClient {
         namespaceName,
         namespaceDesc: description,
         ...this.authParams()
-      }
+      },
+      headers: this.authHeaders()
     });
   }
 
@@ -100,7 +128,8 @@ export class NacosClient {
           pageSize,
           tenant: namespaceId,
           ...this.authParams()
-        }
+        },
+        headers: this.authHeaders()
       });
 
       const pageItems = response.data.pageItems ?? [];
@@ -134,7 +163,8 @@ export class NacosClient {
           dataId,
           group,
           ...this.authParams()
-        }
+        },
+        headers: this.authHeaders()
       });
 
       return response.data;
@@ -160,7 +190,27 @@ export class NacosClient {
         content: item.content,
         type: normalizeNacosConfigType(item.type, item.dataId),
         ...this.authParams()
-      }
+      },
+      headers: this.authHeaders()
+    });
+  }
+
+  private async probePublicNamespace(): Promise<void> {
+    await this.http.request<ConfigListResponse>({
+      method: 'GET',
+      url: '/nacos/v1/cs/configs',
+      params: {
+        search: 'blur',
+        dataId: '',
+        group: '',
+        appName: '',
+        config_tags: '',
+        pageNo: 1,
+        pageSize: 1,
+        tenant: '',
+        ...this.authParams()
+      },
+      headers: this.authHeaders()
     });
   }
 
@@ -172,6 +222,10 @@ export class NacosClient {
 
   private authParams(): Record<string, string> {
     return this.accessToken ? { accessToken: this.accessToken } : {};
+  }
+
+  private authHeaders(): Record<string, string> | undefined {
+    return this.accessToken ? { Authorization: `Bearer ${this.accessToken}` } : undefined;
   }
 }
 
@@ -186,7 +240,10 @@ export function createAxiosHttpClient(baseUrl: string): HttpClient {
       axiosInstance.request({
         ...request,
         data: request.method === 'POST' ? serializeNacosFormData(request.data) : request.data,
-        headers: request.method === 'POST' ? { 'content-type': 'application/x-www-form-urlencoded' } : undefined
+        headers: {
+          ...(request.method === 'POST' ? { 'content-type': 'application/x-www-form-urlencoded' } : {}),
+          ...request.headers
+        }
       })
   };
 }
@@ -221,6 +278,18 @@ function normalizeNamespaces(raw: unknown): NacosNamespace[] {
       description: readString(item, 'namespaceDesc') ?? readString(item, 'description')
     };
   });
+}
+
+function publicNamespace(): NacosNamespace {
+  return {
+    namespaceId: '',
+    namespaceName: 'public',
+    description: 'public'
+  };
+}
+
+function shouldRetryNamespaceWithAuthentication(error: unknown): boolean {
+  return isHttpStatus(error, 401) || isHttpStatus(error, 403);
 }
 
 function normalizeConfigItem(item: Partial<NacosConfigItem>): NacosConfigItem {

@@ -18,6 +18,7 @@ import { NacosClient } from './services/nacosClient';
 import { findKeyValue } from './services/configParser';
 import { SyncService } from './services/syncService';
 import type { ConfirmationRequest } from './services/confirmPolicy';
+import { readHttpErrorMessage } from './services/httpError';
 
 export const ipcChannels = {
   settingsLoad: 'settings:load',
@@ -73,92 +74,116 @@ export function registerIpcHandlers(dependencies: IpcDependencies = {}): void {
   ipcMain.handle(ipcChannels.logChooseDirectory, () => dependencies.chooseLogDirectory?.() ?? null);
   ipcMain.handle(ipcChannels.logOpenDirectory, () => dependencies.openLogDirectory?.());
   ipcMain.handle(ipcChannels.nacosTestConnection, async (_event, connection: NacosConnection) => {
-    const client = new NacosClient(connection);
-    return client.testConnection();
-  });
-  ipcMain.handle(ipcChannels.nacosListNamespaces, async (_event, connection: NacosConnection) => {
-    const client = new NacosClient(connection);
-    return client.listNamespaces();
-  });
-  ipcMain.handle(ipcChannels.nacosCreateNamespace, async (_event, input: CreateNamespaceInput) => {
-    const client = new NacosClient(input.connection);
-    await client.createNamespace(input.namespaceId, input.namespaceName, input.description);
-  });
-  ipcMain.handle(ipcChannels.nacosListConfigs, async (_event, input: ListConfigsInput) => {
-    const client = new NacosClient(input.connection);
-    return client.listConfigs(input.namespaceId);
-  });
-  ipcMain.handle(ipcChannels.syncNamespace, async (_event, input: SyncNamespaceInput) => {
-    const service = createSyncService(input.sourceConnection, input.targetConnection, async (request) =>
-      resolveConfirmDecision(request, {
-        confirmNamespaceStart: input.confirmNamespaceStart,
-        overwriteExistingFiles: input.overwriteExistingFiles,
-        overwriteExistingKeys: false
-      })
-    );
-
-    return service.syncNamespace({
-      sourceNamespaceId: input.sourceNamespaceId,
-      targetNamespaceId: input.targetNamespaceId
+    return withHttpErrorDetails(async () => {
+      const client = new NacosClient(connection);
+      return client.testConnection();
     });
   });
-  ipcMain.handle(ipcChannels.syncFiles, async (_event, input: SyncFilesInput) => {
-    const targetClient = new NacosClient(input.targetConnection);
-    const service = new SyncService({
-      sourceClient: targetClient,
-      targetClient,
-      confirm: async (request) =>
+  ipcMain.handle(ipcChannels.nacosListNamespaces, async (_event, connection: NacosConnection) => {
+    return withHttpErrorDetails(async () => {
+      const client = new NacosClient(connection);
+      return client.listNamespaces();
+    });
+  });
+  ipcMain.handle(ipcChannels.nacosCreateNamespace, async (_event, input: CreateNamespaceInput) => {
+    await withHttpErrorDetails(async () => {
+      const client = new NacosClient(input.connection);
+      await client.createNamespace(input.namespaceId, input.namespaceName, input.description);
+    });
+  });
+  ipcMain.handle(ipcChannels.nacosListConfigs, async (_event, input: ListConfigsInput) => {
+    return withHttpErrorDetails(async () => {
+      const client = new NacosClient(input.connection);
+      return client.listConfigs(input.namespaceId);
+    });
+  });
+  ipcMain.handle(ipcChannels.syncNamespace, async (_event, input: SyncNamespaceInput) => {
+    return withHttpErrorDetails(async () => {
+      const service = createSyncService(input.sourceConnection, input.targetConnection, async (request) =>
         resolveConfirmDecision(request, {
-          confirmNamespaceStart: true,
+          confirmNamespaceStart: input.confirmNamespaceStart,
           overwriteExistingFiles: input.overwriteExistingFiles,
           overwriteExistingKeys: false
         })
-    });
+      );
 
-    return service.syncFiles({
-      targetNamespaceId: input.targetNamespaceId,
-      files: input.files
+      return service.syncNamespace({
+        sourceNamespaceId: input.sourceNamespaceId,
+        targetNamespaceId: input.targetNamespaceId
+      });
+    });
+  });
+  ipcMain.handle(ipcChannels.syncFiles, async (_event, input: SyncFilesInput) => {
+    return withHttpErrorDetails(async () => {
+      const targetClient = new NacosClient(input.targetConnection);
+      const service = new SyncService({
+        sourceClient: targetClient,
+        targetClient,
+        confirm: async (request) =>
+          resolveConfirmDecision(request, {
+            confirmNamespaceStart: true,
+            overwriteExistingFiles: input.overwriteExistingFiles,
+            overwriteExistingKeys: false
+          })
+      });
+
+      return service.syncFiles({
+        targetNamespaceId: input.targetNamespaceId,
+        files: input.files
+      });
     });
   });
   ipcMain.handle(ipcChannels.syncScanKey, async (_event, input: ScanKeyInput) => {
-    const client = new NacosClient(input.connection);
-    const configs = await client.listConfigs(input.namespaceId);
+    return withHttpErrorDetails(async () => {
+      const client = new NacosClient(input.connection);
+      const configs = await client.listConfigs(input.namespaceId);
 
-    return configs.flatMap((config): KeyScanResult[] => {
-      const match = findKeyValue(config.content, input.keyName, config.dataId, config.type);
+      return configs.flatMap((config): KeyScanResult[] => {
+        const match = findKeyValue(config.content, input.keyName, config.dataId, config.type);
 
-      if (!match) {
-        return [];
-      }
-
-      return [
-        {
-          id: `${config.group}:${config.dataId}:${match.keyPath}`,
-          dataId: config.dataId,
-          group: config.group,
-          keyPath: match.keyPath,
-          value: match.value,
-          type: config.type,
-          syncStrategy: 'keyOnly'
+        if (!match) {
+          return [];
         }
-      ];
+
+        return [
+          {
+            id: `${config.group}:${config.dataId}:${match.keyPath}`,
+            dataId: config.dataId,
+            group: config.group,
+            keyPath: match.keyPath,
+            value: match.value,
+            type: config.type,
+            syncStrategy: 'keyOnly'
+          }
+        ];
+      });
     });
   });
   ipcMain.handle(ipcChannels.syncKeyResults, async (_event, input: SyncKeyResultsInput) => {
-    const service = createSyncService(input.sourceConnection, input.targetConnection, async (request) =>
-      resolveConfirmDecision(request, {
-        confirmNamespaceStart: true,
-        overwriteExistingFiles: input.overwriteExistingFiles,
-        overwriteExistingKeys: input.overwriteExistingKeys
-      })
-    );
+    return withHttpErrorDetails(async () => {
+      const service = createSyncService(input.sourceConnection, input.targetConnection, async (request) =>
+        resolveConfirmDecision(request, {
+          confirmNamespaceStart: true,
+          overwriteExistingFiles: input.overwriteExistingFiles,
+          overwriteExistingKeys: input.overwriteExistingKeys
+        })
+      );
 
-    return service.syncKeyResults({
-      sourceNamespaceId: input.sourceNamespaceId,
-      targetNamespaceId: input.targetNamespaceId,
-      results: input.results
+      return service.syncKeyResults({
+        sourceNamespaceId: input.sourceNamespaceId,
+        targetNamespaceId: input.targetNamespaceId,
+        results: input.results
+      });
     });
   });
+}
+
+async function withHttpErrorDetails<T>(operation: () => Promise<T>): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    throw new Error(readHttpErrorMessage(error));
+  }
 }
 
 function createSyncService(

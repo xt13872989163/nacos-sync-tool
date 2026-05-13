@@ -13,6 +13,7 @@ import type {
 import { findKeyValue } from './configParser';
 import { SyncService } from './syncService';
 import type { ConfirmationRequest } from './confirmPolicy';
+import { readHttpErrorMessage } from './httpError';
 
 export const devBridgePort = 37621;
 
@@ -157,7 +158,7 @@ export function startDevHttpBridge(): Server {
 
       sendJson(response, 404, { message: 'Not found' });
     } catch (error) {
-      sendJson(response, 500, { message: readErrorMessage(error) });
+      sendJson(response, 500, { message: readHttpErrorMessage(error) });
     }
   });
 
@@ -178,36 +179,6 @@ async function readJson<T>(request: IncomingMessage): Promise<T> {
 function sendJson(response: ServerResponse, statusCode: number, body: unknown): void {
   response.writeHead(statusCode, { 'content-type': 'application/json; charset=utf-8' });
   response.end(JSON.stringify(body));
-}
-
-function readErrorMessage(error: unknown): string {
-  if (error && typeof error === 'object' && 'response' in error) {
-    const axiosError = error as {
-      config?: { method?: string; url?: string; baseURL?: string };
-      response?: { status?: number; data?: unknown };
-      message?: string;
-    };
-    const method = axiosError.config?.method?.toUpperCase() ?? 'HTTP';
-    const url = `${axiosError.config?.baseURL ?? ''}${axiosError.config?.url ?? ''}`;
-    const status = axiosError.response?.status ?? 'unknown';
-    const data = formatResponseData(axiosError.response?.data);
-
-    return `${method} ${url} failed with status ${status}${data ? `: ${data}` : ''}`;
-  }
-
-  return error instanceof Error ? error.message : String(error);
-}
-
-function formatResponseData(data: unknown): string {
-  if (!data) {
-    return '';
-  }
-
-  if (typeof data === 'string') {
-    return data.slice(0, 500);
-  }
-
-  return JSON.stringify(data).slice(0, 500);
 }
 
 function createSyncService(

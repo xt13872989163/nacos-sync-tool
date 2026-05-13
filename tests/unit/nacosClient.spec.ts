@@ -3,7 +3,13 @@ import { NacosClient, type HttpClient } from '../../src/main/services/nacosClien
 import type { NacosConnection } from '../../src/main/types';
 
 class FakeHttpClient implements HttpClient {
-  requests: Array<{ method: string; url: string; params?: Record<string, unknown>; data?: unknown }> = [];
+  requests: Array<{
+    method: string;
+    url: string;
+    params?: Record<string, unknown>;
+    data?: unknown;
+    headers?: Record<string, string>;
+  }> = [];
   private queue: Array<{ data?: unknown; error?: unknown }> = [];
 
   enqueueData(data: unknown): void {
@@ -14,7 +20,13 @@ class FakeHttpClient implements HttpClient {
     this.queue.push({ error });
   }
 
-  async request<T>(request: { method: 'GET' | 'POST'; url: string; params?: Record<string, unknown>; data?: unknown }) {
+  async request<T>(request: {
+    method: 'GET' | 'POST';
+    url: string;
+    params?: Record<string, unknown>;
+    data?: unknown;
+    headers?: Record<string, string>;
+  }) {
     this.requests.push(request);
     const next = this.queue.shift();
 
@@ -39,13 +51,24 @@ const connection: NacosConnection = {
 describe('NacosClient', () => {
   it('logs in and attaches access token to later requests', async () => {
     const http = new FakeHttpClient();
+    http.enqueueError({ response: { status: 403 } });
     http.enqueueData({ accessToken: 'token-123' });
     http.enqueueData({ data: [] });
 
     const client = new NacosClient(connection, http);
 
-    await expect(client.listNamespaces()).resolves.toEqual([]);
+    await expect(client.listNamespaces()).resolves.toEqual([
+      {
+        namespaceId: '',
+        namespaceName: 'public',
+        description: 'public'
+      }
+    ]);
     expect(http.requests[0]).toMatchObject({
+      method: 'GET',
+      url: '/nacos/v1/console/namespaces'
+    });
+    expect(http.requests[1]).toMatchObject({
       method: 'POST',
       url: '/nacos/v1/auth/login',
       data: {
@@ -53,12 +76,12 @@ describe('NacosClient', () => {
         password: 'password'
       }
     });
-    expect(http.requests[1].params).toMatchObject({ accessToken: 'token-123' });
+    expect(http.requests[2].params).toMatchObject({ accessToken: 'token-123' });
+    expect(http.requests[2].headers).toMatchObject({ Authorization: 'Bearer token-123' });
   });
 
   it('normalizes namespace list response wrapped in data', async () => {
     const http = new FakeHttpClient();
-    http.enqueueData({ accessToken: 'token-123' });
     http.enqueueData({
       data: [{ namespace: 'dev', namespaceShowName: 'Development', namespaceDesc: 'dev namespace' }]
     });
@@ -76,7 +99,6 @@ describe('NacosClient', () => {
 
   it('normalizes namespace list response returned as an array', async () => {
     const http = new FakeHttpClient();
-    http.enqueueData({ accessToken: 'token-123' });
     http.enqueueData([{ namespace: 'prod', namespaceShowName: 'Production' }]);
 
     const client = new NacosClient(connection, http);
@@ -88,6 +110,39 @@ describe('NacosClient', () => {
         description: undefined
       }
     ]);
+  });
+
+  it('falls back to public namespace when Nacos 2.2.x console namespace API returns 500 but config API works', async () => {
+    const http = new FakeHttpClient();
+    http.enqueueError({ response: { status: 403 } });
+    http.enqueueData({ accessToken: 'token-123' });
+    http.enqueueError({ response: { status: 500, data: { message: 'namespace api failed' } } });
+    http.enqueueData({ totalCount: 0, pageItems: [] });
+
+    const client = new NacosClient(connection, http);
+
+    await expect(client.listNamespaces()).resolves.toEqual([
+      {
+        namespaceId: '',
+        namespaceName: 'public',
+        description: 'public'
+      }
+    ]);
+    expect(http.requests[2]).toMatchObject({
+      method: 'GET',
+      url: '/nacos/v1/console/namespaces',
+      params: { accessToken: 'token-123' },
+      headers: { Authorization: 'Bearer token-123' }
+    });
+    expect(http.requests[3]).toMatchObject({
+      method: 'GET',
+      url: '/nacos/v1/cs/configs',
+      params: expect.objectContaining({
+        tenant: '',
+        accessToken: 'token-123'
+      }),
+      headers: { Authorization: 'Bearer token-123' }
+    });
   });
 
   it('loads paged config list until total count is reached', async () => {
