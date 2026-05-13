@@ -21,16 +21,16 @@ jobs:
       matrix:
         include:
           - name: Windows
-            os: windows-latest
-            script: npm run pack:win
+            os: windows-2022
+            script: npm run pack:win -- --publish never
             artifact: nacos-sync-tool-windows
             paths: |
               dist/*.exe
               dist/*.exe.blockmap
               dist/latest.yml
           - name: macOS
-            os: macos-latest
-            script: npm run pack:mac
+            os: macos-15-intel
+            script: npm run pack:mac -- --publish never
             artifact: nacos-sync-tool-macos
             paths: |
               dist/*.dmg
@@ -64,6 +64,27 @@ jobs:
         run: ${{ matrix.script }}
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
+          DEBUG: electron-builder
+
+      - name: List package output
+        if: always()
+        shell: bash
+        run: |
+          if [ -d dist ]; then
+            find dist -maxdepth 2 -type f -print
+          else
+            echo "dist directory was not created"
+          fi
+
+      - name: Upload builder diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}-diagnostics
+          path: |
+            dist/builder-debug.yml
+            dist/builder-effective-config.yaml
+          if-no-files-found: ignore
 
       - name: Upload package artifacts
         uses: actions/upload-artifact@v4
@@ -92,4 +113,6 @@ jobs:
           if ! gh release view "$TAG_NAME" >/dev/null 2>&1; then
             gh release create "$TAG_NAME" --title "$TAG_NAME" --notes "Automated desktop builds for $TAG_NAME." --latest
           fi
-          find release-artifacts -type f -print0 | xargs -0 gh release upload "$TAG_NAME" --clobber
+          while IFS= read -r -d '' file; do
+            gh release upload "$TAG_NAME" "$file" --clobber
+          done < <(find release-artifacts -type f -print0)
