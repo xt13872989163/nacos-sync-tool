@@ -11,7 +11,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
-    "pack:win": "electron-builder --win nsis",
+    "pack:win": "electron-builder --win portable",
     "pack:mac": "electron-builder --mac dmg zip"
   },
   "dependencies": {},
@@ -51,7 +51,7 @@
       "!**/*.map"
     ],
     "win": {
-      "target": "nsis"
+      "target": "portable"
     },
     "mac": {
       "target": [
@@ -59,9 +59,6 @@
         "zip"
       ]
     },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true
-    }
+    "portable": {}
   }
 }
