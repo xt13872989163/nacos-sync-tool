@@ -12,7 +12,7 @@
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
     "pack:win": "electron-builder --win nsis",
-    "pack:mac": "electron-builder --mac dmg"
+    "pack:mac": "electron-builder --mac dmg zip"
   },
   "dependencies": {},
   "devDependencies": {
@@ -54,7 +54,10 @@
       "target": "nsis"
     },
     "mac": {
-      "target": "dmg"
+      "target": [
+        "dmg",
+        "zip"
+      ]
     },
     "nsis": {
       "oneClick": false,
