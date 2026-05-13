@@ -115,12 +115,6 @@ jobs:
           fail_on_unmatched_files: true
           overwrite_files: true
           files: |
-            release-artifacts/**/*.exe
-            release-artifacts/**/*.exe.blockmap
-            release-artifacts/**/*.dmg
-            release-artifacts/**/*.zip
-            release-artifacts/**/*.blockmap
-            release-artifacts/**/latest.yml
-            release-artifacts/**/latest-mac.yml
+            release-artifacts/**/*
         env:
           GITHUB_TOKEN: ${{ github.token }}
