@@ -106,13 +106,21 @@ jobs:
           path: release-artifacts
 
       - name: Create or update release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: Automated desktop builds for ${{ github.ref_name }}.
+          make_latest: true
+          fail_on_unmatched_files: true
+          overwrite_files: true
+          files: |
+            release-artifacts/**/*.exe
+            release-artifacts/**/*.exe.blockmap
+            release-artifacts/**/*.dmg
+            release-artifacts/**/*.zip
+            release-artifacts/**/*.blockmap
+            release-artifacts/**/latest.yml
+            release-artifacts/**/latest-mac.yml
         env:
-          GH_TOKEN: ${{ github.token }}
-          TAG_NAME: ${{ github.ref_name }}
-        run: |
-          if ! gh release view "$TAG_NAME" >/dev/null 2>&1; then
-            gh release create "$TAG_NAME" --title "$TAG_NAME" --notes "Automated desktop builds for $TAG_NAME." --latest
-          fi
-          while IFS= read -r -d '' file; do
-            gh release upload "$TAG_NAME" "$file" --clobber
-          done < <(find release-artifacts -type f -print0)
+          GITHUB_TOKEN: ${{ github.token }}
