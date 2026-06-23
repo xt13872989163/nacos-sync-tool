@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>Nacos.Sync.Tool.Native.Windows</AssemblyName>
+    <RootNamespace>NacosSyncTool.Windows</RootNamespace>
+    <Version>1.0.2</Version>
+    <Authors>Nacos Sync Tool Contributors</Authors>
+    <Product>Nacos Sync Tool Native Windows</Product>
+  </PropertyGroup>
+</Project>

@@ -93,10 +93,81 @@ jobs:
           path: ${{ matrix.paths }}
           if-no-files-found: error
 
+  native-windows:
+    name: Package Native Windows
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore native Windows project
+        run: dotnet restore native/windows/NacosSyncTool.Windows.sln
+
+      - name: Build native Windows project
+        run: dotnet build native/windows/NacosSyncTool.Windows.sln --configuration Release --no-restore
+
+      - name: Test native Windows project
+        run: dotnet test native/windows/NacosSyncTool.Windows.sln --configuration Release --no-build --verbosity normal
+
+      - name: Publish native Windows app
+        run: >
+          dotnet publish native/windows/src/NacosSyncTool.Windows/NacosSyncTool.Windows.csproj
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          --output dist/native-windows
+          -p:PublishSingleFile=true
+          -p:PublishReadyToRun=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+
+      - name: Rename native Windows executable
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          $source = "dist/native-windows/Nacos.Sync.Tool.Native.Windows.exe"
+          $target = "dist/native-windows/Nacos.Sync.Tool.Native.Windows-$version.exe"
+          Move-Item -LiteralPath $source -Destination $target
+
+      - name: Create native Windows zip
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          Compress-Archive `
+            -LiteralPath "dist/native-windows/Nacos.Sync.Tool.Native.Windows-$version.exe" `
+            -DestinationPath "dist/Nacos.Sync.Tool.Native.Windows-$version.zip" `
+            -Force
+
+      - name: List native package output
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path dist) {
+            Get-ChildItem -Path dist -Recurse -File | ForEach-Object { $_.FullName }
+          } else {
+            Write-Output "dist directory was not created"
+          }
+
+      - name: Upload native Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nacos-sync-tool-native-windows
+          path: |
+            dist/native-windows/*.exe
+            dist/Nacos.Sync.Tool.Native.Windows-*.zip
+          if-no-files-found: error
+
   release:
     name: Publish GitHub Release
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: package
+    needs:
+      - package
+      - native-windows
     runs-on: ubuntu-latest
 
     steps:

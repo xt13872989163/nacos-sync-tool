@@ -1,0 +1,36 @@
+<Window x:Class="NacosSyncTool.Windows.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:models="clr-namespace:NacosSyncTool.Windows.Models"
+        Title="Nacos Sync Tool Native Windows"
+        Height="673"
+        Width="772"
+        MinHeight="673"
+        MinWidth="772"
+        WindowStartupLocation="CenterScreen">
+  <Grid Background="#F4F6F3">
+    <Border Width="520"
+            Padding="28"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Background="White"
+            BorderBrush="#D7DDD4"
+            BorderThickness="1">
+      <StackPanel>
+        <TextBlock Text="{x:Static models:AppMetadata.ProductName}"
+                   FontSize="26"
+                   FontWeight="SemiBold"
+                   Foreground="#202520" />
+        <TextBlock Margin="0,10,0,0"
+                   Text="Native Windows shell is ready. Nacos sync features will be migrated in the next phase."
+                   TextWrapping="Wrap"
+                   FontSize="14"
+                   Foreground="#4D574D" />
+        <TextBlock Margin="0,18,0,0"
+                   Text="{x:Static models:AppMetadata.VersionLabel}"
+                   FontSize="12"
+                   Foreground="#6B7569" />
+      </StackPanel>
+    </Border>
+  </Grid>
+</Window>
