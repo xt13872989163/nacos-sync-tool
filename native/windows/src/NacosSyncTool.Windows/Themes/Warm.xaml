@@ -1,0 +1,34 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Warm Theme - 暖色主题 -->
+
+    <!-- Backgrounds -->
+    <SolidColorBrush x:Key="BgBrush" Color="#f2eee6"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#fffdfa"/>
+    <SolidColorBrush x:Key="SurfaceRaisedBrush" Color="#ffffff"/>
+    <SolidColorBrush x:Key="SurfaceSubtleBrush" Color="#f8f1e7"/>
+
+    <!-- Lines -->
+    <SolidColorBrush x:Key="LineBrush" Color="#e0d4c2"/>
+    <SolidColorBrush x:Key="LineStrongBrush" Color="#cdbda8"/>
+
+    <!-- Text -->
+    <SolidColorBrush x:Key="TextBrush" Color="#2a241e"/>
+    <SolidColorBrush x:Key="MutedBrush" Color="#756757"/>
+    <SolidColorBrush x:Key="FaintBrush" Color="#938473"/>
+
+    <!-- Accent -->
+    <SolidColorBrush x:Key="AccentBrush" Color="#9a5b26"/>
+    <SolidColorBrush x:Key="AccentStrongBrush" Color="#6f411d"/>
+    <SolidColorBrush x:Key="AccentSoftBrush" Color="#f4e5d5"/>
+
+    <!-- Warn -->
+    <SolidColorBrush x:Key="WarnBrush" Color="#8f5b12"/>
+    <SolidColorBrush x:Key="WarnSoftBrush" Color="#fff0cf"/>
+
+    <!-- Danger -->
+    <SolidColorBrush x:Key="DangerBrush" Color="#a33a34"/>
+    <SolidColorBrush x:Key="DangerSoftBrush" Color="#fae2de"/>
+
+</ResourceDictionary>

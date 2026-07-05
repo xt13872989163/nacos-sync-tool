@@ -1,0 +1,109 @@
+name: Build Windows Native App
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'native/windows/**'
+      - '.github/workflows/build-windows-native.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'native/windows/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore native/windows/NacosSyncTool.Windows.sln
+
+    - name: Build
+      run: dotnet build native/windows/NacosSyncTool.Windows.sln --configuration Release --no-restore
+
+    - name: Run tests
+      run: dotnet test native/windows/NacosSyncTool.Windows.sln --configuration Release --no-build --verbosity normal
+
+    - name: Publish Windows x64 (Self-contained)
+      run: |
+        dotnet publish native/windows/src/NacosSyncTool.Windows/NacosSyncTool.Windows.csproj `
+          --configuration Release `
+          --runtime win-x64 `
+          --self-contained true `
+          --output publish/win-x64 `
+          -p:PublishSingleFile=true `
+          -p:IncludeNativeLibrariesForSelfExtract=true `
+          -p:DebugType=None `
+          -p:DebugSymbols=false
+
+    - name: Upload Windows x64 artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: NacosSyncTool-Windows-x64
+        path: publish/win-x64/
+        retention-days: 30
+
+    - name: Publish Windows ARM64 (Self-contained)
+      run: |
+        dotnet publish native/windows/src/NacosSyncTool.Windows/NacosSyncTool.Windows.csproj `
+          --configuration Release `
+          --runtime win-arm64 `
+          --self-contained true `
+          --output publish/win-arm64 `
+          -p:PublishSingleFile=true `
+          -p:IncludeNativeLibrariesForSelfExtract=true `
+          -p:DebugType=None `
+          -p:DebugSymbols=false
+
+    - name: Upload Windows ARM64 artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: NacosSyncTool-Windows-ARM64
+        path: publish/win-arm64/
+        retention-days: 30
+
+    - name: Create release info
+      run: |
+        $version = "1.0.2"
+        $releaseNotes = @"
+        # Nacos Sync Tool - Windows Native v$version
+
+        ## 下载说明
+        - **NacosSyncTool-Windows-x64** - 适用于 Intel/AMD 64位处理器的 Windows 系统
+        - **NacosSyncTool-Windows-ARM64** - 适用于 ARM64 处理器的 Windows 系统（如 Surface Pro X）
+
+        ## 使用方法
+        1. 下载对应版本的压缩包
+        2. 解压到任意目录
+        3. 双击运行 `Nacos.Sync.Tool.Native.Windows.exe`
+
+        ## 已完成功能
+        - ✅ 源端和目标端 Nacos 连接
+        - ✅ Namespace 列表获取和选择
+        - ✅ 创建新 Namespace
+        - ✅ 实时日志显示
+        - ✅ 4 种主题切换
+
+        ## 系统要求
+        - Windows 10 1809 或更高版本
+        - Windows 11（推荐）
+        "@
+
+        $releaseNotes | Out-File -FilePath release-notes.txt -Encoding UTF8
+
+    - name: Upload release notes
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-notes
+        path: release-notes.txt
+        retention-days: 30

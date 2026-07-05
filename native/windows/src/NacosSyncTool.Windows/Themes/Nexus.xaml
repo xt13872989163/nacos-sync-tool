@@ -1,0 +1,34 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Nexus Theme - 海洋主题 -->
+
+    <!-- Backgrounds -->
+    <SolidColorBrush x:Key="BgBrush" Color="#d9f4ff"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#f7fdff"/>
+    <SolidColorBrush x:Key="SurfaceRaisedBrush" Color="#ffffff"/>
+    <SolidColorBrush x:Key="SurfaceSubtleBrush" Color="#e9f7ff"/>
+
+    <!-- Lines -->
+    <SolidColorBrush x:Key="LineBrush" Color="#bfe8fb"/>
+    <SolidColorBrush x:Key="LineStrongBrush" Color="#85caf2"/>
+
+    <!-- Text -->
+    <SolidColorBrush x:Key="TextBrush" Color="#12344a"/>
+    <SolidColorBrush x:Key="MutedBrush" Color="#477185"/>
+    <SolidColorBrush x:Key="FaintBrush" Color="#6b9bae"/>
+
+    <!-- Accent -->
+    <SolidColorBrush x:Key="AccentBrush" Color="#178fe5"/>
+    <SolidColorBrush x:Key="AccentStrongBrush" Color="#0871c5"/>
+    <SolidColorBrush x:Key="AccentSoftBrush" Color="#d7efff"/>
+
+    <!-- Warn -->
+    <SolidColorBrush x:Key="WarnBrush" Color="#a66818"/>
+    <SolidColorBrush x:Key="WarnSoftBrush" Color="#fff1cf"/>
+
+    <!-- Danger -->
+    <SolidColorBrush x:Key="DangerBrush" Color="#be4b53"/>
+    <SolidColorBrush x:Key="DangerSoftBrush" Color="#ffe1e6"/>
+
+</ResourceDictionary>
