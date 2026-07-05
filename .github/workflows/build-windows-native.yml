@@ -2,7 +2,7 @@ name: Build Windows Native App
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, codex/nacos-sync-tool-mvp ]
     paths:
       - 'native/windows/**'
       - '.github/workflows/build-windows-native.yml'
