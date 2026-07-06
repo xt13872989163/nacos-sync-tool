@@ -1,0 +1,59 @@
+<Window x:Class="NacosSyncTool.Windows.Views.CreateNamespaceDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="新建 Namespace"
+        Width="440"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{DynamicResource BgBrush}">
+  <Grid Margin="24">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <TextBlock Grid.Row="0" Text="新建 Namespace"
+               FontWeight="SemiBold" FontSize="16"
+               Foreground="{DynamicResource TextBrush}"
+               Margin="0,0,0,16"/>
+
+    <TextBlock Grid.Row="1" Text="Namespace ID"
+               Foreground="{DynamicResource MutedBrush}"
+               Margin="0,0,0,4"/>
+    <TextBox x:Name="NamespaceIdBox" Grid.Row="2"
+             Margin="0,0,0,12"/>
+
+    <TextBlock Grid.Row="3" Text="Namespace 名称"
+               Foreground="{DynamicResource MutedBrush}"
+               Margin="0,0,0,4"/>
+    <TextBox x:Name="NamespaceNameBox" Grid.Row="4"
+             Margin="0,0,0,12"/>
+
+    <TextBlock Grid.Row="5" Text="描述（可选）"
+               Foreground="{DynamicResource MutedBrush}"
+               Margin="0,0,0,4"/>
+    <TextBox x:Name="NamespaceDescBox" Grid.Row="6"
+             Margin="0,0,0,16"/>
+
+    <StackPanel Grid.Row="7"
+                Orientation="Horizontal"
+                HorizontalAlignment="Right"
+                Margin="0,8,0,0">
+      <Button Content="确定"
+              Style="{StaticResource PrimaryButton}"
+              Padding="20,8"
+              Margin="0,0,8,0"
+              Click="OnConfirmClick"/>
+      <Button Content="取消"
+              Style="{StaticResource SecondaryButton}"
+              Padding="20,8"
+              Click="OnCancelClick"/>
+    </StackPanel>
+  </Grid>
+</Window>

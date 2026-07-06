@@ -15,6 +15,13 @@
     <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
     <converters:SourceConnectingTextConverter x:Key="SourceConnectingTextConverter"/>
     <converters:TargetConnectingTextConverter x:Key="TargetConnectingTextConverter"/>
+    <converters:SyncModeToBoolConverter x:Key="SyncModeConverter"/>
+    <converters:SyncModeToVisibilityConverter x:Key="SyncModeToVisibilityConverter"/>
+    <converters:KeySyncStrategyConverter x:Key="KeySyncStrategyConverter"/>
+    <x:Array x:Key="KeySyncStrategyList" Type="{x:Type models:KeySyncStrategy}">
+      <models:KeySyncStrategy>KeyOnly</models:KeySyncStrategy>
+      <models:KeySyncStrategy>FullFile</models:KeySyncStrategy>
+    </x:Array>
   </Window.Resources>
   <Grid>
     <Grid.RowDefinitions>
@@ -162,13 +169,110 @@
       </Grid>
     </Border>
 
-    <!-- 中间数据区占位 -->
+    <!-- 中间数据区 -->
     <Border Grid.Row="2" Background="{DynamicResource SurfaceRaisedBrush}"
             BorderBrush="{DynamicResource LineBrush}" BorderThickness="1"
             Margin="16,8" Padding="16">
-      <TextBlock Text="中间数据工作区（阶段 4/5/6 实现）"
-                 Foreground="{DynamicResource MutedBrush}"
-                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/><!-- 工具栏 -->
+          <RowDefinition Height="*"/>   <!-- 数据表格 -->
+        </Grid.RowDefinitions>
+
+        <!-- 工具栏 -->
+        <Grid Grid.Row="0" Margin="0,0,0,12">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="16"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+
+          <!-- 同步模式选择 -->
+          <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="同步等级：" Foreground="{DynamicResource MutedBrush}"
+                       VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <StackPanel Orientation="Horizontal">
+              <RadioButton Content="Namespace" Margin="0,0,12,0" VerticalAlignment="Center"
+                           IsChecked="{Binding SyncMode, Converter={StaticResource SyncModeConverter}, ConverterParameter=Namespace, Mode=TwoWay}"/>
+              <RadioButton Content="文件" Margin="0,0,12,0" VerticalAlignment="Center"
+                           IsChecked="{Binding SyncMode, Converter={StaticResource SyncModeConverter}, ConverterParameter=File, Mode=TwoWay}"/>
+              <RadioButton Content="Key" VerticalAlignment="Center"
+                           IsChecked="{Binding SyncMode, Converter={StaticResource SyncModeConverter}, ConverterParameter=Key, Mode=TwoWay}"/>
+            </StackPanel>
+          </StackPanel>
+
+          <!-- Key 扫描输入（仅 Key 模式显示） -->
+          <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBox Width="200" Margin="0,0,8,0"
+                     Text="{Binding KeyName, UpdateSourceTrigger=PropertyChanged}"
+                     ToolTip="输入要扫描的 Key 名称（支持 a.b.c 路径）"/>
+            <Button Content="扫描" Style="{StaticResource SecondaryButton}" Padding="12,6"
+                    Command="{Binding ScanKeyCommand}"/>
+          </StackPanel>
+
+          <!-- 加载配置按钮（文件模式显示） -->
+          <Button Grid.Column="4" Content="加载配置" Style="{StaticResource SecondaryButton}"
+                  Padding="12,6" Command="{Binding LoadConfigListCommand}"/>
+        </Grid>
+
+        <!-- 数据表格区 -->
+        <Border Grid.Row="1" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
+          <Grid>
+            <!-- Namespace 模式：显示提示 -->
+            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Foreground="{DynamicResource MutedBrush}"
+                       Visibility="{Binding SyncMode, Converter={StaticResource SyncModeToVisibilityConverter}, ConverterParameter=Namespace}">
+                <Run Text="Namespace 级别同步"/>
+                <LineBreak/>
+                <Run Text="将源 Namespace 下所有配置同步到目标，支持双重确认"/>
+            </TextBlock>
+
+            <!-- 文件模式：配置列表 -->
+            <DataGrid ItemsSource="{Binding ConfigList}"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False" CanUserDeleteRows="False"
+                      SelectionMode="Extended"
+                      HeadersVisibility="Column"
+                      Visibility="{Binding SyncMode, Converter={StaticResource SyncModeToVisibilityConverter}, ConverterParameter=File}">
+              <DataGrid.Columns>
+                <DataGridCheckBoxColumn Header="选择" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="50"/>
+                <DataGridTextColumn Header="DataId" Binding="{Binding DataId}" Width="*"/>
+                <DataGridTextColumn Header="Group" Binding="{Binding Group}" Width="150"/>
+                <DataGridTextColumn Header="类型" Binding="{Binding Type}" Width="80"/>
+              </DataGrid.Columns>
+            </DataGrid>
+
+            <!-- Key 模式：扫描结果列表 -->
+            <DataGrid ItemsSource="{Binding KeyScanResults}"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False" CanUserDeleteRows="False"
+                      SelectionMode="Extended"
+                      HeadersVisibility="Column"
+                      Visibility="{Binding SyncMode, Converter={StaticResource SyncModeToVisibilityConverter}, ConverterParameter=Key}">
+              <DataGrid.Columns>
+                <DataGridCheckBoxColumn Header="选择" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="50"/>
+                <DataGridTextColumn Header="DataId" Binding="{Binding DataId}" Width="*"/>
+                <DataGridTextColumn Header="Group" Binding="{Binding Group}" Width="120"/>
+                <DataGridTextColumn Header="Key 路径" Binding="{Binding KeyPath}" Width="150"/>
+                <DataGridTextColumn Header="原值" Binding="{Binding Value}" Width="200"/>
+                <DataGridComboBoxColumn Header="同步方式" Width="120"
+                                        ItemsSource="{Binding Source={StaticResource KeySyncStrategyList}}"
+                                        SelectedItemBinding="{Binding SyncStrategy, Converter={StaticResource KeySyncStrategyConverter}}"/>
+              </DataGrid.Columns>
+            </DataGrid>
+          </Grid>
+        </Border>
+
+        <!-- 同步按钮（底部悬浮） -->
+        <Button Grid.Row="1" Content="开始同步" Style="{StaticResource PrimaryButton}"
+                Padding="24,10" FontSize="14"
+                HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                Margin="0,0,16,16"
+                Command="{Binding SyncCommand}"
+                IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}"/>
+      </Grid>
     </Border>
 
     <!-- GridSplitter -->

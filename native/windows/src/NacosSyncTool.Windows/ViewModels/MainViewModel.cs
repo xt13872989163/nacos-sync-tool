@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using NacosSyncTool.Windows.Models;
 using NacosSyncTool.Windows.Services;
+using NacosSyncTool.Windows.Views;
 
 namespace NacosSyncTool.Windows.ViewModels;
 
@@ -12,9 +13,9 @@ namespace NacosSyncTool.Windows.ViewModels;
 /// </summary>
 public partial class MainViewModel : ObservableObject
 {
+    private readonly LogService _logService;
     private readonly NacosApiService _sourceNacosApi;
     private readonly NacosApiService _targetNacosApi;
-    private readonly LogService _logService;
 
     // ===== 源端 Nacos =====
     [ObservableProperty]
@@ -60,6 +61,34 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private NacosNamespace? _selectedTargetNamespace;
 
+    // ===== 同步模式 =====
+    [ObservableProperty]
+    private SyncMode _syncMode = SyncMode.File;
+
+    // ===== 配置列表（文件级别） =====
+    [ObservableProperty]
+    private ObservableCollection<NacosConfigItem> _configList = new();
+
+    [ObservableProperty]
+    private NacosConfigItem? _selectedConfig;
+
+    [ObservableProperty]
+    private List<NacosConfigItem> _selectedConfigs = new();
+
+    // ===== Key 扫描 =====
+    [ObservableProperty]
+    private string _keyName = string.Empty;
+
+    [ObservableProperty]
+    private ObservableCollection<KeyScanResult> _keyScanResults = new();
+
+    // ===== 操作状态 =====
+    [ObservableProperty]
+    private bool _isBusy = false;
+
+    [ObservableProperty]
+    private string _busyText = string.Empty;
+
     // ===== 日志 =====
     [ObservableProperty]
     private ObservableCollection<LogEntry> _logs = new();
@@ -70,15 +99,12 @@ public partial class MainViewModel : ObservableObject
         _sourceNacosApi = new NacosApiService();
         _targetNacosApi = new NacosApiService();
 
-        // 订阅日志事件
         _logService.LogAdded += OnLogAdded;
-
         _logService.Info("应用启动成功");
     }
 
-    /// <summary>
-    /// 测试源端连接
-    /// </summary>
+    // ===== 源端连接 =====
+
     [RelayCommand]
     private async Task TestSourceConnectionAsync()
     {
@@ -103,10 +129,8 @@ public partial class MainViewModel : ObservableObject
 
             if (result.Success)
             {
-                _logService.Success($"源端连接成功");
+                _logService.Success("源端连接成功");
                 IsSourceConnected = true;
-
-                // 自动拉取 Namespace 列表
                 await LoadSourceNamespacesAsync();
             }
             else
@@ -133,7 +157,7 @@ public partial class MainViewModel : ObservableObject
     {
         _logService.Info("正在拉取源端 Namespace 列表...");
 
-        var result = await _sourceNacosApi.GetNamespacesAsync(SourceAddress);
+        var result = await _sourceNacosApi.GetNamespacesAsync();
 
         if (result.Success && result.Data != null)
         {
@@ -208,7 +232,7 @@ public partial class MainViewModel : ObservableObject
     {
         _logService.Info("正在拉取目标端 Namespace 列表...");
 
-        var result = await _targetNacosApi.GetNamespacesAsync(TargetAddress);
+        var result = await _targetNacosApi.GetNamespacesAsync();
 
         if (result.Success && result.Data != null)
         {
@@ -238,8 +262,7 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
-        // 这里应该弹出对话框让用户输入，暂时用测试数据
-        var dialog = new CreateNamespaceDialog();
+        var dialog = new CreateNamespaceDialog { Owner = GetMainWindow() };
         if (dialog.ShowDialog() == true)
         {
             var namespaceId = dialog.NamespaceId;
@@ -248,7 +271,7 @@ public partial class MainViewModel : ObservableObject
 
             _logService.Info($"正在创建 Namespace: {namespaceId}...");
 
-            var result = await _targetNacosApi.CreateNamespaceAsync(TargetAddress, namespaceId, namespaceName, namespaceDesc);
+            var result = await _targetNacosApi.CreateNamespaceAsync(namespaceId, namespaceName, namespaceDesc);
 
             if (result.Success)
             {
@@ -275,6 +298,200 @@ public partial class MainViewModel : ObservableObject
         _logService.Info("日志已清空");
     }
 
+    // ===== 数据加载 =====
+
+    /// <summary>
+    /// 加载源端配置列表（文件级别同步用）
+    /// </summary>
+    [RelayCommand]
+    private async Task LoadConfigListAsync()
+    {
+        if (!IsSourceConnected || SelectedSourceNamespace == null)
+        {
+            _logService.Warning("请先连接源端并选择 Namespace");
+            return;
+        }
+
+        IsBusy = true;
+        BusyText = "正在加载配置列表...";
+        _logService.Info($"正在加载配置列表：{SelectedSourceNamespace.DisplayText}");
+
+        try
+        {
+            var result = await _sourceNacosApi.ListConfigsAsync(SelectedSourceNamespace.NamespaceId);
+
+            if (result.Success && result.Data != null)
+            {
+                ConfigList.Clear();
+                foreach (var item in result.Data)
+                {
+                    ConfigList.Add(item);
+                }
+                _logService.Success($"成功加载 {result.Data.Count} 个配置文件");
+            }
+            else
+            {
+                _logService.Error($"加载配置列表失败: {result.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logService.Error($"加载配置列表异常: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    // ===== Key 扫描 =====
+
+    /// <summary>
+    /// 扫描 Key
+    /// </summary>
+    [RelayCommand]
+    private async Task ScanKeyAsync()
+    {
+        if (!IsSourceConnected || SelectedSourceNamespace == null)
+        {
+            _logService.Warning("请先连接源端并选择 Namespace");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(KeyName))
+        {
+            _logService.Warning("请输入要扫描的 Key 名称");
+            return;
+        }
+
+        IsBusy = true;
+        BusyText = $"正在扫描 Key: {KeyName}...";
+
+        try
+        {
+            var syncService = CreateSyncService();
+            var results = await syncService.ScanKeyAsync(SelectedSourceNamespace.NamespaceId, KeyName);
+
+            KeyScanResults.Clear();
+            foreach (var r in results)
+            {
+                KeyScanResults.Add(r);
+            }
+
+            _logService.Success($"扫描完成，共找到 {results.Count} 条结果");
+        }
+        catch (Exception ex)
+        {
+            _logService.Error($"Key 扫描异常: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    // ===== 同步操作 =====
+
+    /// <summary>
+    /// 执行同步（根据当前模式）
+    /// </summary>
+    [RelayCommand]
+    private async Task SyncAsync()
+    {
+        if (!ValidateSyncPrerequisites()) return;
+
+        IsBusy = true;
+
+        try
+        {
+            var syncService = CreateSyncService();
+            SyncSummary summary;
+
+            switch (SyncMode)
+            {
+                case SyncMode.Namespace:
+                    BusyText = "正在同步 Namespace...";
+                    summary = await syncService.SyncNamespaceAsync(
+                        SelectedSourceNamespace!.NamespaceId,
+                        SelectedTargetNamespace!.NamespaceId);
+                    break;
+
+                case SyncMode.File:
+                    var selectedFiles = ConfigList.Where(c => c.IsSelected).ToList();
+                    if (selectedFiles.Count == 0)
+                    {
+                        _logService.Warning("请先选择要同步的配置文件");
+                        return;
+                    }
+                    BusyText = $"正在同步 {selectedFiles.Count} 个文件...";
+                    summary = await syncService.SyncFilesAsync(
+                        SelectedTargetNamespace!.NamespaceId,
+                        selectedFiles);
+                    break;
+
+                case SyncMode.Key:
+                    var selectedResults = KeyScanResults.Where(r => r.IsSelected).ToList();
+                    if (selectedResults.Count == 0)
+                    {
+                        _logService.Warning("请先选择要同步的扫描结果");
+                        return;
+                    }
+                    BusyText = $"正在同步 {selectedResults.Count} 条 Key...";
+                    summary = await syncService.SyncKeyResultsAsync(
+                        SelectedSourceNamespace!.NamespaceId,
+                        SelectedTargetNamespace!.NamespaceId,
+                        selectedResults);
+                    break;
+
+                default:
+                    return;
+            }
+
+            _logService.Success($"同步完成：{summary}");
+        }
+        catch (Exception ex)
+        {
+            _logService.Error($"同步异常: {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    /// <summary>
+    /// 验证同步前置条件
+    /// </summary>
+    private bool ValidateSyncPrerequisites()
+    {
+        if (!IsSourceConnected || !IsTargetConnected)
+        {
+            _logService.Warning("请先连接源端和目标端 Nacos");
+            return false;
+        }
+
+        if (SelectedSourceNamespace == null || SelectedTargetNamespace == null)
+        {
+            _logService.Warning("请选择源端和目标端 Namespace");
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 创建同步服务实例
+    /// </summary>
+    private SyncService CreateSyncService()
+    {
+        var sourceClient = new SyncNacosClientAdapter(_sourceNacosApi);
+        var targetClient = new SyncNacosClientAdapter(_targetNacosApi);
+
+        ConfirmHandler confirm = request => ConfirmDialog.ShowAsync(request);
+
+        return new SyncService(sourceClient, targetClient, confirm, msg => _logService.Info(msg));
+    }
+
     private void OnLogAdded(LogEntry log)
     {
         Application.Current.Dispatcher.Invoke(() =>
@@ -288,12 +505,9 @@ public partial class MainViewModel : ObservableObject
             }
         });
     }
-}
 
-// 临时占位类 - 后续会实现完整的对话框
-public class CreateNamespaceDialog : Window
-{
-    public string NamespaceId { get; set; } = string.Empty;
-    public string NamespaceName { get; set; } = string.Empty;
-    public string NamespaceDesc { get; set; } = string.Empty;
+    private static Window? GetMainWindow()
+    {
+        return Application.Current?.Windows.OfType<Window>().FirstOrDefault(w => w.IsActive);
+    }
 }
