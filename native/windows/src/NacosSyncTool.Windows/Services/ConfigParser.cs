@@ -69,15 +69,15 @@ public static class ConfigParser
         if (format == ConfigFormat.Properties)
         {
             var properties = ParseProperties(content);
-            return properties.TryGetValue(keyPath, out var value)
-                ? new KeyValueMatch { KeyPath = keyPath, Value = value }
+            return properties.TryGetValue(keyPath, out var propValue)
+                ? new KeyValueMatch { KeyPath = keyPath, Value = propValue }
                 : null;
         }
 
         var parsed = ParseStructuredContent(content, format);
-        var value = GetNestedValue(parsed, keyPath);
+        var nestedValue = GetNestedValue(parsed, keyPath);
 
-        return value == null ? null : new KeyValueMatch { KeyPath = keyPath, Value = value };
+        return nestedValue == null ? null : new KeyValueMatch { KeyPath = keyPath, Value = nestedValue };
     }
 
     /// <summary>
