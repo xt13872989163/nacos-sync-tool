@@ -1,7 +1,6 @@
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Web;
 using NacosSyncTool.Windows.Models;
 
 namespace NacosSyncTool.Windows.Services;
@@ -230,18 +229,20 @@ public class NacosApiService
 
             while (items.Count < totalCount)
             {
-                var query = HttpUtility.ParseQueryString(string.Empty);
-                query["search"] = "blur";
-                query["dataId"] = "";
-                query["group"] = "";
-                query["appName"] = "";
-                query["config_tags"] = "";
-                query["pageNo"] = pageNo.ToString();
-                query["pageSize"] = pageSize.ToString();
-                query["tenant"] = namespaceId;
+                var query = new List<KeyValuePair<string, string>>
+                {
+                    new("search", "blur"),
+                    new("dataId", ""),
+                    new("group", ""),
+                    new("appName", ""),
+                    new("config_tags", ""),
+                    new("pageNo", pageNo.ToString()),
+                    new("pageSize", pageSize.ToString()),
+                    new("tenant", namespaceId)
+                };
                 AppendAuth(query);
 
-                var url = $"{_address}/nacos/v1/cs/configs?{query}";
+                var url = $"{_address}/nacos/v1/cs/configs?{BuildQueryString(query)}";
                 var response = await _httpClient.GetAsync(url);
                 var responseBody = await response.Content.ReadAsStringAsync();
 
@@ -304,13 +305,15 @@ public class NacosApiService
         {
             await EnsureAuthenticatedAsync();
 
-            var query = HttpUtility.ParseQueryString(string.Empty);
-            query["tenant"] = namespaceId;
-            query["dataId"] = dataId;
-            query["group"] = group;
+            var query = new List<KeyValuePair<string, string>>
+            {
+                new("tenant", namespaceId),
+                new("dataId", dataId),
+                new("group", group)
+            };
             AppendAuth(query);
 
-            var url = $"{_address}/nacos/v1/cs/configs?{query}";
+            var url = $"{_address}/nacos/v1/cs/configs?{BuildQueryString(query)}";
             var response = await _httpClient.GetAsync(url);
 
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -379,9 +382,9 @@ public class NacosApiService
     /// </summary>
     private string BuildUrl(string path)
     {
-        var query = HttpUtility.ParseQueryString(string.Empty);
+        var query = new List<KeyValuePair<string, string>>();
         AppendAuth(query);
-        var queryString = query.ToString();
+        var queryString = BuildQueryString(query);
         return string.IsNullOrEmpty(queryString)
             ? $"{_address}{path}"
             : $"{_address}{path}?{queryString}";
@@ -390,12 +393,22 @@ public class NacosApiService
     /// <summary>
     /// 追加鉴权参数
     /// </summary>
-    private void AppendAuth(System.Collections.Specialized.NameValueCollection query)
+    private void AppendAuth(List<KeyValuePair<string, string>> query)
     {
         if (!string.IsNullOrEmpty(_accessToken))
         {
-            query["accessToken"] = _accessToken;
+            query.Add(new KeyValuePair<string, string>("accessToken", _accessToken));
         }
+    }
+
+    /// <summary>
+    /// 构建 query string（URL 编码）
+    /// </summary>
+    private static string BuildQueryString(List<KeyValuePair<string, string>> parameters)
+    {
+        return string.Join("&", parameters
+            .Where(p => p.Value != null)
+            .Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
     }
 
     /// <summary>
