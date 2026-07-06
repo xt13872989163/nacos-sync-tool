@@ -1,5 +1,8 @@
 name: Build Windows Native App
 
+# 构建 Nacos Sync Tool 的 Windows 原生版本（WPF + .NET 10）
+# 产物：x64 和 ARM64 单文件可执行程序
+
 on:
   push:
     branches: [ main, develop, codex/nacos-sync-tool-mvp ]
