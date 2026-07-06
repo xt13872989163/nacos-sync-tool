@@ -56,17 +56,27 @@ public class SyncModeToVisibilityConverter : IValueConverter
 }
 
 /// <summary>
-/// KeySyncStrategy 转换器（用于 ComboBox 绑定枚举）
+/// KeySyncStrategy 转换器
+/// 枚举 <-> ComboBox SelectedIndex(int)
+/// KeyOnly=0, FullFile=1
 /// </summary>
 public class KeySyncStrategyConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        return value;
+        if (value is KeySyncStrategy strategy)
+        {
+            return (int)strategy;
+        }
+        return 0;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        return value;
+        if (value is int index)
+        {
+            return (KeySyncStrategy)index;
+        }
+        return KeySyncStrategy.KeyOnly;
     }
 }

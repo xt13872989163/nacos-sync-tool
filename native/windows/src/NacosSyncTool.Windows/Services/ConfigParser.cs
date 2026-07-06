@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -36,7 +35,6 @@ public static class ConfigParser
 
     private static readonly ISerializer YamlSerializer = new SerializerBuilder()
         .WithNamingConvention(NullNamingConvention.Instance)
-        .Configure(o => o.DefaultScalarStyle = YamlDotNet.Core.ScalarStyle.Plain)
         .Build();
 
     /// <summary>

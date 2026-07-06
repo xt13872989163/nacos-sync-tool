@@ -18,10 +18,6 @@
     <converters:SyncModeToBoolConverter x:Key="SyncModeConverter"/>
     <converters:SyncModeToVisibilityConverter x:Key="SyncModeToVisibilityConverter"/>
     <converters:KeySyncStrategyConverter x:Key="KeySyncStrategyConverter"/>
-    <x:Array x:Key="KeySyncStrategyList" Type="{x:Type models:KeySyncStrategy}">
-      <models:KeySyncStrategy>KeyOnly</models:KeySyncStrategy>
-      <models:KeySyncStrategy>FullFile</models:KeySyncStrategy>
-    </x:Array>
   </Window.Resources>
   <Grid>
     <Grid.RowDefinitions>
@@ -257,9 +253,17 @@
                 <DataGridTextColumn Header="Group" Binding="{Binding Group}" Width="120"/>
                 <DataGridTextColumn Header="Key 路径" Binding="{Binding KeyPath}" Width="150"/>
                 <DataGridTextColumn Header="原值" Binding="{Binding Value}" Width="200"/>
-                <DataGridComboBoxColumn Header="同步方式" Width="120"
-                                        ItemsSource="{Binding Source={StaticResource KeySyncStrategyList}}"
-                                        SelectedItemBinding="{Binding SyncStrategy, Converter={StaticResource KeySyncStrategyConverter}}"/>
+                <DataGridTemplateColumn Header="同步方式" Width="120">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <ComboBox SelectedIndex="{Binding SyncStrategy, Converter={StaticResource KeySyncStrategyConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                Margin="2">
+                        <ComboBoxItem Content="仅同步 Key"/>
+                        <ComboBoxItem Content="同步整个文件"/>
+                      </ComboBox>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
               </DataGrid.Columns>
             </DataGrid>
           </Grid>
