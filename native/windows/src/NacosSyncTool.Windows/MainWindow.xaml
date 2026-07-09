@@ -85,28 +85,32 @@
 
           <!-- 面板标题 + 状态药丸 -->
           <Grid Grid.Row="0" Margin="0,0,0,10">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="源端 Nacos（只读）" Style="{StaticResource PanelTitle}"
-                         VerticalAlignment="Center"/>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="源端 Nacos（只读）" Style="{StaticResource PanelTitle}"
+                       VerticalAlignment="Center"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+              <!-- 未连接药丸 -->
+              <Border Style="{StaticResource StatusPillPanel}"
+                      Visibility="{Binding IsSourceConnected, Converter={StaticResource InverseBoolToVisibility}}">
+                <StackPanel Orientation="Horizontal">
+                  <Ellipse Style="{StaticResource StatusDot}"/>
+                  <TextBlock Text="未连接" FontSize="10" FontWeight="SemiBold"
+                             Foreground="{DynamicResource MutedBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+              </Border>
+              <!-- 已连接药丸 -->
+              <Border Style="{StaticResource StatusPillPanel}"
+                      Visibility="{Binding IsSourceConnected, Converter={StaticResource BoolToVisibility}}">
+                <StackPanel Orientation="Horizontal">
+                  <Ellipse Style="{StaticResource StatusDot}" Fill="{DynamicResource AccentBrush}"/>
+                  <TextBlock Text="已连接" FontSize="10" FontWeight="SemiBold"
+                             Foreground="{DynamicResource AccentStrongBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+              </Border>
             </StackPanel>
-            <!-- 未连接药丸 -->
-            <Border Style="{StaticResource StatusPillPanel}"
-                    Visibility="{Binding IsSourceConnected, Converter={StaticResource InverseBoolToVisibility}}">
-              <StackPanel Orientation="Horizontal">
-                <Ellipse Style="{StaticResource StatusDot}"/>
-                <TextBlock Text="未连接" FontSize="10" FontWeight="SemiBold"
-                           Foreground="{DynamicResource MutedBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
-              </StackPanel>
-            </Border>
-            <!-- 已连接药丸 -->
-            <Border Style="{StaticResource StatusPillPanel}"
-                    Visibility="{Binding IsSourceConnected, Converter={StaticResource BoolToVisibility}}">
-              <StackPanel Orientation="Horizontal">
-                <Ellipse Style="{StaticResource StatusDot}" Fill="{DynamicResource AccentBrush}"/>
-                <TextBlock Text="已连接" FontSize="10" FontWeight="SemiBold"
-                           Foreground="{DynamicResource AccentStrongBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
-              </StackPanel>
-            </Border>
           </Grid>
 
           <Grid Grid.Row="1">
@@ -165,23 +169,29 @@
           </Grid.RowDefinitions>
 
           <Grid Grid.Row="0" Margin="0,0,0,10">
-            <TextBlock Text="目标端 Nacos" Style="{StaticResource PanelTitle}" VerticalAlignment="Center"/>
-            <Border Style="{StaticResource StatusPillPanel}"
-                    Visibility="{Binding IsTargetConnected, Converter={StaticResource InverseBoolToVisibility}}">
-              <StackPanel Orientation="Horizontal">
-                <Ellipse Style="{StaticResource StatusDot}"/>
-                <TextBlock Text="未连接" FontSize="10" FontWeight="SemiBold"
-                           Foreground="{DynamicResource MutedBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
-              </StackPanel>
-            </Border>
-            <Border Style="{StaticResource StatusPillPanel}"
-                    Visibility="{Binding IsTargetConnected, Converter={StaticResource BoolToVisibility}}">
-              <StackPanel Orientation="Horizontal">
-                <Ellipse Style="{StaticResource StatusDot}" Fill="{DynamicResource AccentBrush}"/>
-                <TextBlock Text="已连接" FontSize="10" FontWeight="SemiBold"
-                           Foreground="{DynamicResource AccentStrongBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
-              </StackPanel>
-            </Border>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="目标端 Nacos" Style="{StaticResource PanelTitle}" VerticalAlignment="Center"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+              <Border Style="{StaticResource StatusPillPanel}"
+                      Visibility="{Binding IsTargetConnected, Converter={StaticResource InverseBoolToVisibility}}">
+                <StackPanel Orientation="Horizontal">
+                  <Ellipse Style="{StaticResource StatusDot}"/>
+                  <TextBlock Text="未连接" FontSize="10" FontWeight="SemiBold"
+                             Foreground="{DynamicResource MutedBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+              </Border>
+              <Border Style="{StaticResource StatusPillPanel}"
+                      Visibility="{Binding IsTargetConnected, Converter={StaticResource BoolToVisibility}}">
+                <StackPanel Orientation="Horizontal">
+                  <Ellipse Style="{StaticResource StatusDot}" Fill="{DynamicResource AccentBrush}"/>
+                  <TextBlock Text="已连接" FontSize="10" FontWeight="SemiBold"
+                             Foreground="{DynamicResource AccentStrongBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+              </Border>
+            </StackPanel>
           </Grid>
 
           <Grid Grid.Row="1">
@@ -432,6 +442,8 @@
     </Border>
   </Grid>
 </Window>
+
+
 
 
 
