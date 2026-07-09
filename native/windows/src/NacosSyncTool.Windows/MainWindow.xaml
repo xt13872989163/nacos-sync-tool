@@ -339,16 +339,10 @@
                       Command="{Binding ScanKeyCommand}"/>
             </StackPanel>
 
-            <!-- 加载配置按钮 -->
+            <!-- 加载配置按钮（仅文件模式） -->
             <Button Grid.Column="4" Content="加载配置" Style="{StaticResource SecondaryButton}"
-                    Command="{Binding LoadConfigListCommand}"/>
-
-            <!-- 开始同步（右浮） -->
-            <Button Grid.Column="4" Content="开始同步" Style="{StaticResource PrimaryButton}"
-                    Padding="20,8" FontSize="13"
-                    Command="{Binding SyncCommand}"
-                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}"
-                    Visibility="{Binding SyncMode, Converter={StaticResource SyncModeToVisibilityConverter}, ConverterParameter=Namespace}"/>
+                    Command="{Binding LoadConfigListCommand}"
+                    Visibility="{Binding SyncMode, Converter={StaticResource SyncModeToVisibilityConverter}, ConverterParameter=File}"/>
           </Grid>
         </Border>
 
@@ -391,6 +385,14 @@
               </DataGridTemplateColumn>
             </DataGrid.Columns>
           </DataGrid>
+
+          <!-- 开始同步（右下角悬浮，所有模式可见） -->
+          <Button Content="开始同步" Style="{StaticResource PrimaryButton}"
+                  Padding="22,9" FontSize="13"
+                  HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                  Margin="0,0,14,12"
+                  Command="{Binding SyncCommand}"
+                  IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}"/>
         </Grid>
       </Grid>
     </Border>
@@ -430,5 +432,7 @@
     </Border>
   </Grid>
 </Window>
+
+
 
 
