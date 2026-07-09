@@ -1,4 +1,4 @@
-name: Build Desktop Apps
+﻿name: Build Desktop Apps
 
 on:
   push:
@@ -106,11 +106,22 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      - name: Configure UTF-8 codepage
+        shell: pwsh
+        run: |
+          chcp 65001
+          Write-Output "PYTHONUTF8=1" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Output "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=0" | Out-File -FilePath $env:GITHUB_ENV -Append
+
       - name: Restore native Windows project
         run: dotnet restore native/windows/NacosSyncTool.Windows.sln
+        env:
+          DOTNET_CLI_UI_LANGUAGE: en
 
       - name: Build native Windows project
         run: dotnet build native/windows/NacosSyncTool.Windows.sln --configuration Release --no-restore
+        env:
+          DOTNET_CLI_UI_LANGUAGE: en
 
       - name: Test native Windows project
         run: dotnet test native/windows/NacosSyncTool.Windows.sln --configuration Release --no-build --verbosity normal
