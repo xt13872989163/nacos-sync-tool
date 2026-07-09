@@ -164,7 +164,6 @@
         <Setter Property="CanUserAddRows" Value="False"/>
         <Setter Property="CanUserDeleteRows" Value="False"/>
         <Setter Property="SelectionMode" Value="Extended"/>
-        <Setter Property="IsReadOnly" Value="True"/>
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="RowHeight" Value="30"/>
         <Setter Property="ColumnHeaderHeight" Value="30"/>
@@ -200,6 +199,7 @@
 
     <!-- DataGrid 单元格样式 -->
     <Style TargetType="DataGridCell">
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
         <Setter Property="Padding" Value="10,0"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
@@ -212,6 +212,11 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <!-- ===== 状态药丸（连接状态指示） ===== -->

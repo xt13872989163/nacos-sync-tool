@@ -394,22 +394,36 @@
             <DataGrid ItemsSource="{Binding ConfigList}"
                       Visibility="{Binding SyncMode, Converter={StaticResource SyncModeToVisibilityConverter}, ConverterParameter=File}">
               <DataGrid.Columns>
-                <DataGridCheckBoxColumn Header="选择" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="54"/>
-                <DataGridTextColumn Header="DataId" Binding="{Binding DataId}" Width="*"/>
-                <DataGridTextColumn Header="Group" Binding="{Binding Group}" Width="150"/>
-                <DataGridTextColumn Header="类型" Binding="{Binding Type}" Width="80"/>
+                <DataGridTemplateColumn Header="选择" Width="54" IsReadOnly="False">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="DataId" Binding="{Binding DataId}" Width="*" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Group" Binding="{Binding Group}" Width="150" IsReadOnly="True"/>
+                <DataGridTextColumn Header="类型" Binding="{Binding Type}" Width="80" IsReadOnly="True"/>
               </DataGrid.Columns>
             </DataGrid>
 
             <DataGrid ItemsSource="{Binding KeyScanResults}"
                       Visibility="{Binding SyncMode, Converter={StaticResource SyncModeToVisibilityConverter}, ConverterParameter=Key}">
               <DataGrid.Columns>
-                <DataGridCheckBoxColumn Header="选择" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="54"/>
-                <DataGridTextColumn Header="DataId" Binding="{Binding DataId}" Width="*"/>
-                <DataGridTextColumn Header="Group" Binding="{Binding Group}" Width="120"/>
-                <DataGridTextColumn Header="Key 路径" Binding="{Binding KeyPath}" Width="150"/>
-                <DataGridTextColumn Header="原值" Binding="{Binding Value}" Width="220"/>
-                <DataGridTemplateColumn Header="同步方式" Width="138">
+                <DataGridTemplateColumn Header="选择" Width="54" IsReadOnly="False">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="DataId" Binding="{Binding DataId}" Width="*" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Group" Binding="{Binding Group}" Width="120" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Key 路径" Binding="{Binding KeyPath}" Width="150" IsReadOnly="True"/>
+                <DataGridTextColumn Header="原值" Binding="{Binding Value}" Width="220" IsReadOnly="True"/>
+                <DataGridTemplateColumn Header="同步方式" Width="138" IsReadOnly="False">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate>
                       <ComboBox SelectedIndex="{Binding SyncStrategy, Converter={StaticResource KeySyncStrategyConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="2">
