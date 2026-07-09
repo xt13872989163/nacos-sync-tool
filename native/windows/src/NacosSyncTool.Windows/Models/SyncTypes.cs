@@ -1,4 +1,4 @@
-namespace NacosSyncTool.Windows.Models;
+﻿namespace NacosSyncTool.Windows.Models;
 
 /// <summary>
 /// Key 扫描结果

@@ -1,4 +1,4 @@
-namespace NacosSyncTool.Windows.Models;
+﻿namespace NacosSyncTool.Windows.Models;
 
 /// <summary>
 /// Nacos Namespace 信息

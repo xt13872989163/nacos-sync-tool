@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
@@ -11,6 +11,7 @@
     <Authors>Nacos Sync Tool Contributors</Authors>
     <Product>Nacos Sync Tool Native Windows</Product>
     <LangVersion>latest</LangVersion>
+    <FileEncoding>UTF-8</FileEncoding>
   </PropertyGroup>
 
   <ItemGroup>
