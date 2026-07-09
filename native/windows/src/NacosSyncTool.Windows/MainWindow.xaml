@@ -31,7 +31,7 @@
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
       <RowDefinition Height="5"/>
-      <RowDefinition Height="150"/>
+      <RowDefinition Height="130"/>
     </Grid.RowDefinitions>
 
     <!-- 标题栏 -->
@@ -67,7 +67,7 @@
     </Border>
 
     <!-- 连接区 -->
-    <Grid Grid.Row="1" Margin="0,0,0,8">
+    <Grid Grid.Row="1" Margin="0,0,0,6">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*"/>
         <ColumnDefinition Width="8"/>
@@ -75,100 +75,88 @@
       </Grid.ColumnDefinitions>
 
       <!-- 源端 Nacos -->
-      <Border x:Name="SourcePanel" Grid.Column="0"
-              Style="{StaticResource ConnPanel}">
+      <Border x:Name="SourcePanel" Grid.Column="0" Style="{StaticResource ConnPanel}">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
           </Grid.RowDefinitions>
 
-          <!-- 面板标题 + 状态药丸 -->
-          <Grid Grid.Row="0" Margin="0,0,0,10">
+          <!-- 标题 + 状态药丸 -->
+          <Grid Grid.Row="0" Margin="0,0,0,6">
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="Auto"/>
               <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Text="源端 Nacos（只读）" Style="{StaticResource PanelTitle}"
-                       VerticalAlignment="Center"/>
+            <TextBlock Grid.Column="0" Text="源端 Nacos（只读）" Style="{StaticResource PanelTitle}" VerticalAlignment="Center"/>
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-              <!-- 未连接药丸 -->
               <Border Style="{StaticResource StatusPillPanel}"
                       Visibility="{Binding IsSourceConnected, Converter={StaticResource InverseBoolToVisibility}}">
                 <StackPanel Orientation="Horizontal">
                   <Ellipse Style="{StaticResource StatusDot}"/>
-                  <TextBlock Text="未连接" FontSize="10" FontWeight="SemiBold"
-                             Foreground="{DynamicResource MutedBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                  <TextBlock Text="未连接" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
               </Border>
-              <!-- 已连接药丸 -->
               <Border Style="{StaticResource StatusPillPanel}"
                       Visibility="{Binding IsSourceConnected, Converter={StaticResource BoolToVisibility}}">
                 <StackPanel Orientation="Horizontal">
                   <Ellipse Style="{StaticResource StatusDot}" Fill="{DynamicResource AccentBrush}"/>
-                  <TextBlock Text="已连接" FontSize="10" FontWeight="SemiBold"
-                             Foreground="{DynamicResource AccentStrongBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                  <TextBlock Text="已连接" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource AccentStrongBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
               </Border>
             </StackPanel>
           </Grid>
 
-          <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="*"/>
-              <ColumnDefinition Width="8"/>
-              <ColumnDefinition Width="120"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-
+          <!-- 字段区 -->
+          <StackPanel Grid.Row="1" Orientation="Vertical" Margin="0,0,0,0">
             <!-- 地址 -->
-            <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,8">
+            <StackPanel Margin="0,0,0,6">
               <TextBlock Text="地址" Style="{StaticResource FieldLabel}"/>
               <TextBox Text="{Binding SourceAddress, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
             <!-- 账号 -->
-            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,8">
+            <StackPanel Margin="0,0,0,6">
               <TextBlock Text="账号" Style="{StaticResource FieldLabel}"/>
               <TextBox Text="{Binding SourceUsername, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
-            <!-- 密码 + 测试按钮 -->
-            <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,8">
-              <TextBlock Text="密码" Style="{StaticResource FieldLabel}"/>
-              <PasswordBox x:Name="SourcePasswordBox" PasswordChanged="OnSourcePasswordChanged"/>
-            </StackPanel>
-            <Button Grid.Row="2" Grid.Column="2" VerticalAlignment="Bottom"
-                    Command="{Binding TestSourceConnectionCommand}"
-                    IsEnabled="{Binding IsSourceConnecting, Converter={StaticResource InverseBoolConverter}}"
-                    Style="{StaticResource PrimaryButton}"
-                    Content="{Binding IsSourceConnecting, Converter={StaticResource SourceConnectingTextConverter}}"/>
-
+            <!-- 密码 + 测试按钮 同一行 -->
+            <Grid Margin="0,0,0,6">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <StackPanel Grid.Column="0">
+                <TextBlock Text="密码" Style="{StaticResource FieldLabel}"/>
+                <PasswordBox x:Name="SourcePasswordBox" PasswordChanged="OnSourcePasswordChanged"/>
+              </StackPanel>
+              <Button Grid.Column="2" VerticalAlignment="Center"
+                      Command="{Binding TestSourceConnectionCommand}"
+                      IsEnabled="{Binding IsSourceConnecting, Converter={StaticResource InverseBoolConverter}}"
+                      Style="{StaticResource PrimaryButton}"
+                      Content="{Binding IsSourceConnecting, Converter={StaticResource SourceConnectingTextConverter}}"/>
+            </Grid>
             <!-- Namespace -->
-            <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,4,0,0">
+            <StackPanel>
               <TextBlock Text="Namespace" Style="{StaticResource FieldLabel}"/>
               <ComboBox ItemsSource="{Binding SourceNamespaces}"
                         SelectedItem="{Binding SelectedSourceNamespace}"
                         DisplayMemberPath="DisplayText"
                         IsEnabled="{Binding IsSourceConnected}"/>
             </StackPanel>
-          </Grid>
+          </StackPanel>
         </Grid>
       </Border>
 
       <!-- 目标端 Nacos -->
-      <Border x:Name="TargetPanel" Grid.Column="2"
-              Style="{StaticResource ConnPanel}">
+      <Border x:Name="TargetPanel" Grid.Column="2" Style="{StaticResource ConnPanel}">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
           </Grid.RowDefinitions>
 
-          <Grid Grid.Row="0" Margin="0,0,0,10">
+          <Grid Grid.Row="0" Margin="0,0,0,6">
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="Auto"/>
               <ColumnDefinition Width="*"/>
@@ -179,53 +167,45 @@
                       Visibility="{Binding IsTargetConnected, Converter={StaticResource InverseBoolToVisibility}}">
                 <StackPanel Orientation="Horizontal">
                   <Ellipse Style="{StaticResource StatusDot}"/>
-                  <TextBlock Text="未连接" FontSize="10" FontWeight="SemiBold"
-                             Foreground="{DynamicResource MutedBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                  <TextBlock Text="未连接" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
               </Border>
               <Border Style="{StaticResource StatusPillPanel}"
                       Visibility="{Binding IsTargetConnected, Converter={StaticResource BoolToVisibility}}">
                 <StackPanel Orientation="Horizontal">
                   <Ellipse Style="{StaticResource StatusDot}" Fill="{DynamicResource AccentBrush}"/>
-                  <TextBlock Text="已连接" FontSize="10" FontWeight="SemiBold"
-                             Foreground="{DynamicResource AccentStrongBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                  <TextBlock Text="已连接" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource AccentStrongBrush}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
               </Border>
             </StackPanel>
           </Grid>
 
-          <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="*"/>
-              <ColumnDefinition Width="8"/>
-              <ColumnDefinition Width="120"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="Auto"/>
-              <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-
-            <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,8">
+          <StackPanel Grid.Row="1" Orientation="Vertical">
+            <StackPanel Margin="0,0,0,6">
               <TextBlock Text="地址" Style="{StaticResource FieldLabel}"/>
               <TextBox Text="{Binding TargetAddress, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
-            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,8">
+            <StackPanel Margin="0,0,0,6">
               <TextBlock Text="账号" Style="{StaticResource FieldLabel}"/>
               <TextBox Text="{Binding TargetUsername, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
-            <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,8">
-              <TextBlock Text="密码" Style="{StaticResource FieldLabel}"/>
-              <PasswordBox x:Name="TargetPasswordBox" PasswordChanged="OnTargetPasswordChanged"/>
-            </StackPanel>
-            <Button Grid.Row="2" Grid.Column="2" VerticalAlignment="Bottom"
-                    Command="{Binding TestTargetConnectionCommand}"
-                    IsEnabled="{Binding IsTargetConnecting, Converter={StaticResource InverseBoolConverter}}"
-                    Style="{StaticResource PrimaryButton}"
-                    Content="{Binding IsTargetConnecting, Converter={StaticResource TargetConnectingTextConverter}}"/>
-
-            <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,4,0,0">
+            <Grid Margin="0,0,0,6">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <StackPanel Grid.Column="0">
+                <TextBlock Text="密码" Style="{StaticResource FieldLabel}"/>
+                <PasswordBox x:Name="TargetPasswordBox" PasswordChanged="OnTargetPasswordChanged"/>
+              </StackPanel>
+              <Button Grid.Column="2" VerticalAlignment="Center"
+                      Command="{Binding TestTargetConnectionCommand}"
+                      IsEnabled="{Binding IsTargetConnecting, Converter={StaticResource InverseBoolConverter}}"
+                      Style="{StaticResource PrimaryButton}"
+                      Content="{Binding IsTargetConnecting, Converter={StaticResource TargetConnectingTextConverter}}"/>
+            </Grid>
+            <StackPanel>
               <TextBlock Text="Namespace" Style="{StaticResource FieldLabel}"/>
               <Grid>
                 <Grid.ColumnDefinitions>
@@ -244,15 +224,14 @@
                         Style="{StaticResource IconButton}"/>
               </Grid>
             </StackPanel>
-          </Grid>
+          </StackPanel>
         </Grid>
       </Border>
     </Grid>
 
     <!-- 中间数据区 -->
     <Border Grid.Row="2" Background="{DynamicResource SurfaceRaisedBrush}"
-            BorderBrush="{DynamicResource LineBrush}" BorderThickness="1"
-            CornerRadius="6">
+            BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" CornerRadius="6">
       <Grid>
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto"/>
@@ -280,9 +259,7 @@
                 <RadioButton.Template>
                   <ControlTemplate TargetType="RadioButton">
                     <Border x:Name="Bd" Style="{StaticResource ModeOptionBorder}">
-                      <StackPanel Orientation="Horizontal">
-                        <ContentPresenter VerticalAlignment="Center"/>
-                      </StackPanel>
+                      <ContentPresenter VerticalAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
                       <Trigger Property="IsChecked" Value="True">
@@ -339,17 +316,16 @@
               </RadioButton>
             </StackPanel>
 
-            <!-- Key 扫描输入 -->
+            <!-- Key 扫描输入（仅 Key 模式） -->
             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
                         Visibility="{Binding SyncMode, Converter={StaticResource SyncModeToVisibilityConverter}, ConverterParameter=Key}">
               <TextBox Width="180" Margin="0,0,6,0"
                        Text="{Binding KeyName, UpdateSourceTrigger=PropertyChanged}"
                        ToolTip="输入要扫描的 Key 名称（支持 a.b.c 路径）"/>
-              <Button Content="扫描" Style="{StaticResource SecondaryButton}"
-                      Command="{Binding ScanKeyCommand}"/>
+              <Button Content="扫描" Style="{StaticResource SecondaryButton}" Command="{Binding ScanKeyCommand}"/>
             </StackPanel>
 
-            <!-- 加载配置按钮（仅文件模式） -->
+            <!-- 加载配置（仅文件模式） -->
             <Button Grid.Column="4" Content="加载配置" Style="{StaticResource SecondaryButton}"
                     Command="{Binding LoadConfigListCommand}"
                     Visibility="{Binding SyncMode, Converter={StaticResource SyncModeToVisibilityConverter}, ConverterParameter=File}"/>
@@ -360,13 +336,15 @@
         <Grid Grid.Row="1">
           <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
                      Foreground="{DynamicResource MutedBrush}" TextAlignment="Center"
-                     Visibility="{Binding SyncMode, Converter={StaticResource SyncModeToVisibilityConverter}, ConverterParameter=Namespace}">
+                     Visibility="{Binding SyncMode, Converter={StaticResource SyncModeToVisibilityConverter}, ConverterParameter=Namespace}"
+                     Margin="20">
             <Run Text="Namespace 级别同步" FontSize="13" FontWeight="SemiBold"/><LineBreak/>
             <Run Text="将源 Namespace 下所有配置同步到目标，支持双重确认" FontSize="11"/>
           </TextBlock>
 
           <DataGrid ItemsSource="{Binding ConfigList}"
-                    Visibility="{Binding SyncMode, Converter={StaticResource SyncModeToVisibilityConverter}, ConverterParameter=File}">
+                    Visibility="{Binding SyncMode, Converter={StaticResource SyncModeToVisibilityConverter}, ConverterParameter=File}"
+                    Margin="0,0,0,0">
             <DataGrid.Columns>
               <DataGridCheckBoxColumn Header="选择" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="46"/>
               <DataGridTextColumn Header="DataId" Binding="{Binding DataId}" Width="*"/>
@@ -396,13 +374,14 @@
             </DataGrid.Columns>
           </DataGrid>
 
-          <!-- 开始同步（右下角悬浮，所有模式可见） -->
-          <Button Content="开始同步" Style="{StaticResource PrimaryButton}"
-                  Padding="22,9" FontSize="13"
-                  HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                  Margin="0,0,14,12"
-                  Command="{Binding SyncCommand}"
-                  IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}"/>
+          <!-- 开始同步（右下角，按钮不遮挡表格内容） -->
+          <Border HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                  Margin="0,0,14,12" Background="Transparent">
+            <Button Content="开始同步" Style="{StaticResource PrimaryButton}"
+                    Padding="22,9" FontSize="13"
+                    Command="{Binding SyncCommand}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}"/>
+          </Border>
         </Grid>
       </Grid>
     </Border>
@@ -442,9 +421,3 @@
     </Border>
   </Grid>
 </Window>
-
-
-
-
-
-
