@@ -41,7 +41,7 @@
         </Setter>
     </Style>
 
-    <!-- 娆℃寜閽?-->
+    <!-- 次按钮 -->
     <Style x:Key="SecondaryButton" TargetType="Button">
         <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
@@ -76,7 +76,7 @@
         </Setter>
     </Style>
 
-    <!-- 鍥炬爣鎸夐挳锛堝皬鏂瑰潡锛岀敤浜庢柊寤?Namespace锛?-->
+    <!-- 图标按钮 -->
     <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
         <Setter Property="Width" Value="30"/>
         <Setter Property="MinWidth" Value="30"/>
@@ -128,6 +128,12 @@
         <Setter Property="FontSize" Value="11"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Margin" Value="0,0,0,3"/>
+    </Style>
+
+    <Style x:Key="SubtleLabel" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
     </Style>
 
     <!-- 面板标题 -->
@@ -223,6 +229,55 @@
         <Setter Property="Height" Value="7"/>
         <Setter Property="Fill" Value="#9aa39a"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <!-- ===== 顶部栏 ===== -->
+    <Style x:Key="TopBar" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Padding" Value="14,9"/>
+    </Style>
+
+    <!-- ===== 连接流程面板 ===== -->
+    <Style x:Key="FlowPanel" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Padding" Value="14,12"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource LineStrongBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="SyncArrowBadge" TargetType="Border">
+        <Setter Property="Width" Value="42"/>
+        <Setter Property="Height" Value="42"/>
+        <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="21"/>
+    </Style>
+
+    <!-- ===== 工作台 ===== -->
+    <Style x:Key="WorkbenchShell" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+
+    <Style x:Key="SideModeOptionBorder" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="5"/>
+        <Setter Property="Padding" Value="10,8"/>
+        <Setter Property="Cursor" Value="Hand"/>
     </Style>
 
     <!-- ===== 同步模式卡片选择器 ===== -->
