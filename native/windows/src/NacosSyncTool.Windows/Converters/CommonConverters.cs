@@ -5,7 +5,7 @@ using System.Windows.Data;
 namespace NacosSyncTool.Windows.Converters;
 
 /// <summary>
-/// 甯冨皵鍊煎彇鍙嶈浆鎹㈠櫒
+/// 布尔值取反转换器
 /// </summary>
 public class InverseBoolConverter : IValueConverter
 {
@@ -29,16 +29,17 @@ public class InverseBoolConverter : IValueConverter
 }
 
 /// <summary>
-/// 婧愮杩炴帴鐘舵€佽浆鏂囨湰杞崲鍣?/// </summary>
+/// 源端连接状态转按钮文本转换器
+/// </summary>
 public class SourceConnectingTextConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is bool isConnecting)
         {
-            return isConnecting ? "杩炴帴涓?.." : "娴嬭瘯杩炴帴";
+            return isConnecting ? "连接中..." : "测试连接";
         }
-        return "娴嬭瘯杩炴帴";
+        return "测试连接";
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -48,16 +49,17 @@ public class SourceConnectingTextConverter : IValueConverter
 }
 
 /// <summary>
-/// 鐩爣绔繛鎺ョ姸鎬佽浆鏂囨湰杞崲鍣?/// </summary>
+/// 目标端连接状态转按钮文本转换器
+/// </summary>
 public class TargetConnectingTextConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is bool isConnecting)
         {
-            return isConnecting ? "杩炴帴涓?.." : "娴嬭瘯杩炴帴";
+            return isConnecting ? "连接中..." : "测试连接";
         }
-        return "娴嬭瘯杩炴帴";
+        return "测试连接";
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

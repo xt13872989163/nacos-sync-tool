@@ -1,13 +1,13 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- Shared Styles - 閫氱敤鎺т欢鏍峰紡锛堝榻?Electron 鐗堟湰绱у噾椋庢牸锛?-->
+    <!-- Shared Styles - 通用控件样式 -->
 
-    <!-- 榛樿瀛椾綋 -->
+    <!-- 默认字体 -->
     <FontFamily x:Key="DefaultFontFamily">Microsoft YaHei UI, Segoe UI, sans-serif</FontFamily>
     <system:Double x:Key="DefaultFontSize" xmlns:system="clr-namespace:System;assembly=mscorlib">13</system:Double>
 
-    <!-- 涓绘寜閽紙寮鸿皟鑹诧級 -->
+    <!-- 主按钮 -->
     <Style x:Key="PrimaryButton" TargetType="Button">
         <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
         <Setter Property="Foreground" Value="White"/>
@@ -84,7 +84,7 @@
         <Setter Property="FontSize" Value="16"/>
     </Style>
 
-    <!-- 杈撳叆妗?-->
+    <!-- 输入框 -->
     <Style TargetType="TextBox">
         <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
@@ -109,7 +109,7 @@
         <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
 
-    <!-- 涓嬫媺妗?-->
+    <!-- 下拉框 -->
     <Style TargetType="ComboBox">
         <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
@@ -122,7 +122,7 @@
         <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
 
-    <!-- 瀛楁鏍囩 -->
+    <!-- 字段标签 -->
     <Style x:Key="FieldLabel" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
         <Setter Property="FontSize" Value="11"/>
@@ -130,14 +130,14 @@
         <Setter Property="Margin" Value="0,0,0,3"/>
     </Style>
 
-    <!-- 闈㈡澘鏍囬 -->
+    <!-- 面板标题 -->
     <Style x:Key="PanelTitle" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="FontWeight" Value="Bold"/>
     </Style>
 
-    <!-- 鐘舵€佸窘绔?-->
+    <!-- 状态徽标 -->
     <Style x:Key="StatusPill" TargetType="Border">
         <Setter Property="Background" Value="{DynamicResource SurfaceSubtleBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}"/>
@@ -146,7 +146,7 @@
         <Setter Property="Padding" Value="8,2"/>
     </Style>
 
-    <!-- DataGrid 鏍峰紡 -->
+    <!-- DataGrid 样式 -->
     <Style TargetType="DataGrid">
         <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
@@ -166,7 +166,7 @@
         <Setter Property="HeadersVisibility" Value="Column"/>
     </Style>
 
-    <!-- DataGrid 琛ㄥご鏍峰紡 -->
+    <!-- DataGrid 表头样式 -->
     <Style TargetType="DataGridColumnHeader">
         <Setter Property="Background" Value="{DynamicResource SurfaceSubtleBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
@@ -177,7 +177,7 @@
         <Setter Property="BorderThickness" Value="0,0,1,1"/>
     </Style>
 
-    <!-- DataGrid 琛屾牱寮?-->
+    <!-- DataGrid 行样式 -->
     <Style TargetType="DataGridRow">
         <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
@@ -192,7 +192,7 @@
         </Style.Triggers>
     </Style>
 
-    <!-- DataGrid 鍗曞厓鏍兼牱寮?-->
+    <!-- DataGrid 单元格样式 -->
     <Style TargetType="DataGridCell">
         <Setter Property="Padding" Value="10,0"/>
         <Setter Property="BorderThickness" Value="0"/>

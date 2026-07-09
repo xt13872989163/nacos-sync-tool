@@ -512,9 +512,6 @@ public class NacosApiService
 
     private class ConfigItemData
     {
-        [JsonPropertyName("id")]
-        public long Id { get; set; }
-
         [JsonPropertyName("dataId")]
         public string? DataId { get; set; }
 
