@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.Windows;
@@ -16,6 +16,7 @@ public partial class MainViewModel : ObservableObject
     private readonly LogService _logService;
     private readonly NacosApiService _sourceNacosApi;
     private readonly NacosApiService _targetNacosApi;
+    private CancellationTokenSource? _toastCancellation;
 
     // ===== 源端 Nacos =====
     [ObservableProperty]
@@ -89,6 +90,37 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _busyText = string.Empty;
 
+    [ObservableProperty]
+    private bool _isToastVisible = false;
+
+    [ObservableProperty]
+    private string _toastMessage = string.Empty;
+
+    // ===== 结果摘要 =====
+    [ObservableProperty]
+    private int _selectedConfigCount;
+
+    [ObservableProperty]
+    private int _selectedKeyCount;
+
+    [ObservableProperty]
+    private int _selectedKeyOnlyCount;
+
+    [ObservableProperty]
+    private int _selectedFullFileCount;
+
+    [ObservableProperty]
+    private string _fileListSummary = string.Empty;
+
+    [ObservableProperty]
+    private string _keyListSummary = string.Empty;
+
+    [ObservableProperty]
+    private bool _hasFileResults;
+
+    [ObservableProperty]
+    private bool _hasKeyResults;
+
     // ===== 日志 =====
     [ObservableProperty]
     private ObservableCollection<LogEntry> _logs = new();
@@ -101,6 +133,69 @@ public partial class MainViewModel : ObservableObject
 
         _logService.LogAdded += OnLogAdded;
         _logService.Info("应用启动成功");
+
+        ConfigList.CollectionChanged += OnConfigListChanged;
+        KeyScanResults.CollectionChanged += OnKeyScanResultsChanged;
+        UpdateFileListSummary();
+        UpdateKeyListSummary();
+    }
+
+    // ===== 批量选择 =====
+
+    [RelayCommand]
+    private void SelectAllFiles()
+    {
+        foreach (var item in ConfigList) item.IsSelected = true;
+        RefreshFileSummaries();
+    }
+
+    [RelayCommand]
+    private void InvertFileSelection()
+    {
+        foreach (var item in ConfigList) item.IsSelected = !item.IsSelected;
+        RefreshFileSummaries();
+    }
+
+    [RelayCommand]
+    private void ClearFileSelection()
+    {
+        foreach (var item in ConfigList) item.IsSelected = false;
+        RefreshFileSummaries();
+    }
+
+    [RelayCommand]
+    private void SelectAllKeys()
+    {
+        foreach (var item in KeyScanResults) item.IsSelected = true;
+        RefreshKeySummaries();
+    }
+
+    [RelayCommand]
+    private void InvertKeySelection()
+    {
+        foreach (var item in KeyScanResults) item.IsSelected = !item.IsSelected;
+        RefreshKeySummaries();
+    }
+
+    [RelayCommand]
+    private void ClearKeySelection()
+    {
+        foreach (var item in KeyScanResults) item.IsSelected = false;
+        RefreshKeySummaries();
+    }
+
+    [RelayCommand]
+    private void SetAllKeyStrategyKeyOnly()
+    {
+        foreach (var item in KeyScanResults) item.SyncStrategy = KeySyncStrategy.KeyOnly;
+        RefreshKeySummaries();
+    }
+
+    [RelayCommand]
+    private void SetAllKeyStrategyFullFile()
+    {
+        foreach (var item in KeyScanResults) item.SyncStrategy = KeySyncStrategy.FullFile;
+        RefreshKeySummaries();
     }
 
     // ===== 源端连接 =====
@@ -298,6 +393,56 @@ public partial class MainViewModel : ObservableObject
         _logService.Info("日志已清空");
     }
 
+    public void NotifyValueCopied()
+    {
+        _logService.Success("原值已复制到剪贴板");
+        ShowToast("原值已复制到剪贴板");
+    }
+
+    public void NotifyValueCopyFailed(string message)
+    {
+        _logService.Error($"复制原值失败: {message}");
+        ShowToast("复制失败，请重试");
+    }
+
+    private void ShowToast(string message)
+    {
+        _ = ShowToastAsync(message);
+    }
+
+    private async Task ShowToastAsync(string message)
+    {
+        _toastCancellation?.Cancel();
+        _toastCancellation?.Dispose();
+
+        var cancellation = new CancellationTokenSource();
+        _toastCancellation = cancellation;
+        ToastMessage = message;
+        IsToastVisible = true;
+
+        try
+        {
+            await Task.Delay(2200, cancellation.Token);
+            if (_toastCancellation == cancellation)
+            {
+                IsToastVisible = false;
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            // 新提示会取消旧提示的隐藏任务。
+        }
+        finally
+        {
+            if (_toastCancellation == cancellation)
+            {
+                _toastCancellation = null;
+            }
+
+            cancellation.Dispose();
+        }
+    }
+
     // ===== 数据加载 =====
 
     /// <summary>
@@ -400,6 +545,22 @@ public partial class MainViewModel : ObservableObject
     {
         if (!ValidateSyncPrerequisites()) return;
 
+        // 同步前摘要确认
+        var selectedFileCount = ConfigList.Count(c => c.IsSelected);
+        var selectedKeyResults = KeyScanResults.Where(r => r.IsSelected).ToList();
+        if (SyncMode == SyncMode.File && selectedFileCount == 0)
+        {
+            _logService.Warning("请先选择要同步的配置文件");
+            return;
+        }
+        if (SyncMode == SyncMode.Key && selectedKeyResults.Count == 0)
+        {
+            _logService.Warning("请先选择要同步的扫描结果");
+            return;
+        }
+
+        if (!ShowSyncSummaryConfirmation(selectedFileCount, selectedKeyResults)) return;
+
         IsBusy = true;
 
         try
@@ -418,11 +579,6 @@ public partial class MainViewModel : ObservableObject
 
                 case SyncMode.File:
                     var selectedFiles = ConfigList.Where(c => c.IsSelected).ToList();
-                    if (selectedFiles.Count == 0)
-                    {
-                        _logService.Warning("请先选择要同步的配置文件");
-                        return;
-                    }
                     BusyText = $"正在同步 {selectedFiles.Count} 个文件...";
                     summary = await syncService.SyncFilesAsync(
                         SelectedTargetNamespace!.NamespaceId,
@@ -430,12 +586,7 @@ public partial class MainViewModel : ObservableObject
                     break;
 
                 case SyncMode.Key:
-                    var selectedResults = KeyScanResults.Where(r => r.IsSelected).ToList();
-                    if (selectedResults.Count == 0)
-                    {
-                        _logService.Warning("请先选择要同步的扫描结果");
-                        return;
-                    }
+                    var selectedResults = selectedKeyResults;
                     BusyText = $"正在同步 {selectedResults.Count} 条 Key...";
                     summary = await syncService.SyncKeyResultsAsync(
                         SelectedSourceNamespace!.NamespaceId,
@@ -480,6 +631,54 @@ public partial class MainViewModel : ObservableObject
     }
 
     /// <summary>
+    /// 显示同步前摘要确认
+    /// </summary>
+    private bool ShowSyncSummaryConfirmation(int selectedFileCount, List<KeyScanResult> selectedKeyResults)
+    {
+        var modeLabel = SyncMode switch
+        {
+            SyncMode.Namespace => "Namespace 级别",
+            SyncMode.File => "文件级别",
+            SyncMode.Key => "Key 级别",
+            _ => SyncMode.ToString()
+        };
+
+        var sourceNs = SelectedSourceNamespace?.DisplayText ?? "(未选择)";
+        var targetNs = SelectedTargetNamespace?.DisplayText ?? "(未选择)";
+
+        var lines = new List<string>
+        {
+            $"同步模式：{modeLabel}",
+            $"源端 Namespace：{sourceNs}",
+            $"目标端 Namespace：{targetNs}"
+        };
+
+        if (SyncMode == SyncMode.File)
+        {
+            lines.Add($"已选文件：{selectedFileCount} 个");
+        }
+        else if (SyncMode == SyncMode.Key)
+        {
+            var keyOnly = selectedKeyResults.Count(r => r.SyncStrategy == KeySyncStrategy.KeyOnly);
+            var fullFile = selectedKeyResults.Count(r => r.SyncStrategy == KeySyncStrategy.FullFile);
+            lines.Add($"已选结果：{selectedKeyResults.Count} 条");
+            lines.Add($"  仅同步 Key：{keyOnly} 条");
+            lines.Add($"  同步整个文件：{fullFile} 条");
+        }
+
+        var body = string.Join("\n", lines);
+        var request = new ConfirmationRequest
+        {
+            Kind = ConfirmationKind.NamespaceStart,
+            Title = "确认开始同步",
+            Body = body
+        };
+
+        var decision = ConfirmDialog.ShowAsync(request).GetAwaiter().GetResult();
+        return decision == ConfirmDecision.Confirm;
+    }
+
+    /// <summary>
     /// 创建同步服务实例
     /// </summary>
     private SyncService CreateSyncService()
@@ -490,6 +689,77 @@ public partial class MainViewModel : ObservableObject
         ConfirmHandler confirm = request => ConfirmDialog.ShowAsync(request);
 
         return new SyncService(sourceClient, targetClient, confirm, msg => _logService.Info(msg));
+    }
+
+    // ===== 摘要刷新 =====
+
+    private void OnConfigListChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        if (e.OldItems != null)
+            foreach (NacosConfigItem item in e.OldItems)
+                item.PropertyChanged -= OnConfigItemPropertyChanged;
+
+        if (e.NewItems != null)
+            foreach (NacosConfigItem item in e.NewItems)
+                item.PropertyChanged += OnConfigItemPropertyChanged;
+
+        HasFileResults = ConfigList.Count > 0;
+        RefreshFileSummaries();
+    }
+
+    private void OnKeyScanResultsChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        if (e.OldItems != null)
+            foreach (KeyScanResult item in e.OldItems)
+                item.PropertyChanged -= OnKeyItemPropertyChanged;
+
+        if (e.NewItems != null)
+            foreach (KeyScanResult item in e.NewItems)
+                item.PropertyChanged += OnKeyItemPropertyChanged;
+
+        HasKeyResults = KeyScanResults.Count > 0;
+        RefreshKeySummaries();
+    }
+
+    private void OnConfigItemPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(NacosConfigItem.IsSelected))
+            RefreshFileSummaries();
+    }
+
+    private void OnKeyItemPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(KeyScanResult.IsSelected) || e.PropertyName == nameof(KeyScanResult.SyncStrategy))
+            RefreshKeySummaries();
+    }
+
+    private void RefreshFileSummaries()
+    {
+        SelectedConfigCount = ConfigList.Count(c => c.IsSelected);
+        UpdateFileListSummary();
+    }
+
+    private void RefreshKeySummaries()
+    {
+        var selected = KeyScanResults.Where(r => r.IsSelected).ToList();
+        SelectedKeyCount = selected.Count;
+        SelectedKeyOnlyCount = selected.Count(r => r.SyncStrategy == KeySyncStrategy.KeyOnly);
+        SelectedFullFileCount = selected.Count(r => r.SyncStrategy == KeySyncStrategy.FullFile);
+        UpdateKeyListSummary();
+    }
+
+    private void UpdateFileListSummary()
+    {
+        var total = ConfigList.Count;
+        var selected = ConfigList.Count(c => c.IsSelected);
+        FileListSummary = total == 0 ? string.Empty : $"共 {total} 个文件，已选 {selected}";
+    }
+
+    private void UpdateKeyListSummary()
+    {
+        var total = KeyScanResults.Count;
+        var selected = KeyScanResults.Count(r => r.IsSelected);
+        KeyListSummary = total == 0 ? string.Empty : $"共 {total} 条结果，已选 {selected}";
     }
 
     private void OnLogAdded(LogEntry log)

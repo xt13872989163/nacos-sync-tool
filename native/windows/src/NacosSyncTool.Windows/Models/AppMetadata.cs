@@ -1,4 +1,4 @@
-﻿namespace NacosSyncTool.Windows.Models;
+namespace NacosSyncTool.Windows.Models;
 
 public static class AppMetadata
 {

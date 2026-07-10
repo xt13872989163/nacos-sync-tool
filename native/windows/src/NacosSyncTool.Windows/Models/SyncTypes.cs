@@ -1,26 +1,40 @@
-﻿namespace NacosSyncTool.Windows.Models;
+using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace NacosSyncTool.Windows.Models;
 
 /// <summary>
 /// Key 扫描结果
 /// </summary>
-public class KeyScanResult
+public class KeyScanResult : ObservableObject
 {
+    private bool _isSelected;
+    private KeySyncStrategy _syncStrategy = KeySyncStrategy.KeyOnly;
+
     public string Id { get; set; } = string.Empty;
     public string DataId { get; set; } = string.Empty;
     public string Group { get; set; } = string.Empty;
     public string KeyPath { get; set; } = string.Empty;
-    public string Value { get; set; } = string.Empty;
+    public object? Value { get; set; }
+    public string DisplayValue => ConfigValueFormatter.ToDisplayText(Value);
     public string? Type { get; set; }
 
     /// <summary>
     /// 同步策略：KeyOnly=仅同步当前 Key，FullFile=同步整个文件
     /// </summary>
-    public KeySyncStrategy SyncStrategy { get; set; } = KeySyncStrategy.KeyOnly;
+    public KeySyncStrategy SyncStrategy
+    {
+        get => _syncStrategy;
+        set => SetProperty(ref _syncStrategy, value);
+    }
 
     /// <summary>
     /// 是否被选中（用于多选）
     /// </summary>
-    public bool IsSelected { get; set; }
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set => SetProperty(ref _isSelected, value);
+    }
 }
 
 public enum KeySyncStrategy

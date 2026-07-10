@@ -1,4 +1,7 @@
-﻿using System.Text.Json;
+using System.Text.Json;
+using System.Collections;
+using System.Globalization;
+using NacosSyncTool.Windows.Models;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -20,7 +23,7 @@ public enum ConfigFormat
 public class KeyValueMatch
 {
     public string KeyPath { get; set; } = string.Empty;
-    public string Value { get; set; } = string.Empty;
+    public object? Value { get; set; }
 }
 
 /// <summary>
@@ -83,7 +86,7 @@ public static class ConfigParser
     /// <summary>
     /// 插入或更新指定 Key 的值
     /// </summary>
-    public static string UpsertKeyValue(string content, string keyPath, string value, string dataId, string? type)
+    public static string UpsertKeyValue(string content, string keyPath, object? value, string dataId, string? type)
     {
         var format = DetectConfigFormat(dataId, type);
 
@@ -93,7 +96,7 @@ public static class ConfigParser
         }
 
         var parsed = ParseStructuredContent(content, format);
-        var dict = parsed as Dictionary<string, object> ?? new Dictionary<string, object>();
+        var dict = parsed as Dictionary<string, object?> ?? new Dictionary<string, object?>();
         SetNestedValue(dict, keyPath, value);
 
         if (format == ConfigFormat.Json)
@@ -111,46 +114,110 @@ public static class ConfigParser
     {
         if (string.IsNullOrWhiteSpace(content))
         {
-            return new Dictionary<string, object>();
+            return new Dictionary<string, object?>();
         }
 
         try
         {
             if (format == ConfigFormat.Json)
             {
-                return JsonSerializer.Deserialize<Dictionary<string, object>>(content);
+                using var document = JsonDocument.Parse(content);
+                return NormalizeStructuredValue(document.RootElement);
             }
 
-            return YamlDeserializer.Deserialize<Dictionary<string, object>>(content);
+            return NormalizeStructuredValue(YamlDeserializer.Deserialize<object>(content));
         }
         catch
         {
-            return new Dictionary<string, object>();
+            return new Dictionary<string, object?>();
         }
+    }
+
+    private static object? NormalizeStructuredValue(object? value)
+    {
+        if (value is null || value is string || IsScalar(value))
+        {
+            return value;
+        }
+
+        if (value is JsonElement jsonElement)
+        {
+            return NormalizeJsonElement(jsonElement);
+        }
+
+        if (value is IDictionary dictionary)
+        {
+            var result = new Dictionary<string, object?>();
+            foreach (DictionaryEntry entry in dictionary)
+            {
+                var key = Convert.ToString(entry.Key, CultureInfo.InvariantCulture);
+                if (!string.IsNullOrEmpty(key))
+                {
+                    result[key] = NormalizeStructuredValue(entry.Value);
+                }
+            }
+            return result;
+        }
+
+        if (value is IEnumerable enumerable)
+        {
+            return enumerable.Cast<object?>().Select(NormalizeStructuredValue).ToList();
+        }
+
+        return value;
+    }
+
+    private static object? NormalizeJsonElement(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.Object => element.EnumerateObject()
+                .ToDictionary(property => property.Name, property => NormalizeJsonElement(property.Value)),
+            JsonValueKind.Array => element.EnumerateArray().Select(NormalizeJsonElement).ToList(),
+            JsonValueKind.String => element.GetString(),
+            JsonValueKind.Number => element.TryGetInt64(out var longValue)
+                ? longValue
+                : element.TryGetDouble(out var doubleValue) ? doubleValue : element.GetRawText(),
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.Null => null,
+            _ => element.GetRawText()
+        };
+    }
+
+    private static bool IsScalar(object value)
+    {
+        var type = value.GetType();
+        return type.IsPrimitive
+               || value is decimal
+               || value is DateTime
+               || value is DateTimeOffset
+               || value is Guid
+               || value is Enum;
     }
 
     /// <summary>
     /// 获取嵌套值（支持 a.b.c 路径）
     /// </summary>
-    private static string? GetNestedValue(object? input, string keyPath)
+    private static object? GetNestedValue(object? input, string keyPath)
     {
         var current = input;
         foreach (var segment in keyPath.Split('.'))
         {
-            if (current is not Dictionary<string, object> dict || !dict.TryGetValue(segment, out var value))
+            if (current is not Dictionary<string, object?> dict || !dict.TryGetValue(segment, out var value))
             {
                 return null;
             }
             current = value;
         }
 
-        return current?.ToString();
+        return current;
     }
 
     /// <summary>
     /// 设置嵌套值
     /// </summary>
-    private static void SetNestedValue(Dictionary<string, object> input, string keyPath, string value)
+    private static void SetNestedValue(Dictionary<string, object?> input, string keyPath, object? value)
     {
         var segments = keyPath.Split('.');
         var current = input;
@@ -166,15 +233,15 @@ public static class ConfigParser
             }
 
             if (!current.TryGetValue(segment, out var existing)
-                || existing is not Dictionary<string, object>)
+                || existing is not Dictionary<string, object?>)
             {
-                var nested = new Dictionary<string, object>();
+                var nested = new Dictionary<string, object?>();
                 current[segment] = nested;
                 current = nested;
             }
             else
             {
-                current = (Dictionary<string, object>)existing;
+                current = (Dictionary<string, object?>)existing;
             }
         }
     }
@@ -211,9 +278,10 @@ public static class ConfigParser
     /// <summary>
     /// 插入或更新 Properties 值
     /// </summary>
-    private static string UpsertPropertiesValue(string content, string keyPath, string value)
+    private static string UpsertPropertiesValue(string content, string keyPath, object? value)
     {
         var lines = content.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None).ToList();
+        var stringValue = ConfigValueFormatter.ToDisplayText(value).Replace("\r\n", " ").Replace('\n', ' ');
         bool updated = false;
 
         for (int i = 0; i < lines.Count; i++)
@@ -234,7 +302,7 @@ public static class ConfigParser
             var key = line.Substring(0, separatorIndex).Trim();
             if (key == keyPath)
             {
-                lines[i] = $"{keyPath}={value}";
+                lines[i] = $"{keyPath}={stringValue}";
                 updated = true;
             }
         }
@@ -243,15 +311,15 @@ public static class ConfigParser
         {
             if (lines.Count > 0 && lines[lines.Count - 1] != "")
             {
-                lines.Add($"{keyPath}={value}");
+                lines.Add($"{keyPath}={stringValue}");
             }
             else if (lines.Count > 0)
             {
-                lines[lines.Count - 1] = $"{keyPath}={value}";
+                lines[lines.Count - 1] = $"{keyPath}={stringValue}";
             }
             else
             {
-                lines.Add($"{keyPath}={value}");
+                lines.Add($"{keyPath}={stringValue}");
             }
         }
 
