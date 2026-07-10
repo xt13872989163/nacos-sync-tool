@@ -1,4 +1,4 @@
-<Window x:Class="NacosSyncTool.Windows.MainWindow"
+﻿<Window x:Class="NacosSyncTool.Windows.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:models="clr-namespace:NacosSyncTool.Windows.Models"
@@ -387,173 +387,194 @@
           </Border>
 
           <Grid Grid.Row="1" Background="{DynamicResource SurfaceRaisedBrush}">
-            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                       Foreground="{DynamicResource MutedBrush}" TextAlignment="Center"
-                       Visibility="{Binding SyncMode, Converter={StaticResource SyncModeToVisibilityConverter}, ConverterParameter=Namespace}"
-                       Margin="28">
-              <Run Text="Namespace 级别同步" FontSize="15" FontWeight="SemiBold"/><LineBreak/>
-              <Run Text="连接源端和目标端后，点击右上角开始同步" FontSize="12"/>
-            </TextBlock>
+            <Grid Visibility="{Binding SyncMode, Converter={StaticResource SyncModeToVisibilityConverter}, ConverterParameter=Namespace}">
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="28">
+                <TextBlock Text="Namespace 级别同步"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource MutedBrush}"
+                           TextAlignment="Center"/>
+                <TextBlock Text="连接源端和目标端后，点击右上角开始同步"
+                           FontSize="12"
+                           Foreground="{DynamicResource MutedBrush}"
+                           Margin="0,6,0,0"
+                           TextAlignment="Center"/>
+              </StackPanel>
+            </Grid>
 
-            <!-- 文件模式：批量操作工具条 -->
-            <StackPanel Orientation="Horizontal" Margin="10,6"
-                        Visibility="{Binding SyncMode, Converter={StaticResource SyncModeToVisibilityConverter}, ConverterParameter=File}">
-              <TextBlock Text="{Binding FileListSummary}" VerticalAlignment="Center"
-                         Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="0,0,12,0"
-                         Visibility="{Binding HasFileResults, Converter={StaticResource BoolToVisibility}}"/>
-              <Button Content="全选" Style="{StaticResource SecondaryButton}" Padding="8,3" Margin="0,0,6,0"
-                      Command="{Binding SelectAllFilesCommand}"
-                      Visibility="{Binding HasFileResults, Converter={StaticResource BoolToVisibility}}"/>
-              <Button Content="反选" Style="{StaticResource SecondaryButton}" Padding="8,3" Margin="0,0,6,0"
-                      Command="{Binding InvertFileSelectionCommand}"
-                      Visibility="{Binding HasFileResults, Converter={StaticResource BoolToVisibility}}"/>
-              <Button Content="清空选择" Style="{StaticResource SecondaryButton}" Padding="8,3"
-                      Command="{Binding ClearFileSelectionCommand}"
-                      Visibility="{Binding HasFileResults, Converter={StaticResource BoolToVisibility}}"/>
-            </StackPanel>
+            <Grid Visibility="{Binding SyncMode, Converter={StaticResource SyncModeToVisibilityConverter}, ConverterParameter=File}">
+              <StackPanel Orientation="Horizontal" Margin="10,6" VerticalAlignment="Top">
+                <TextBlock Text="{Binding FileListSummary}" VerticalAlignment="Center"
+                           Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="0,0,12,0"
+                           Visibility="{Binding HasFileResults, Converter={StaticResource BoolToVisibility}}"/>
+                <Button Content="全选" Style="{StaticResource SecondaryButton}" Padding="8,3" Margin="0,0,6,0"
+                        Command="{Binding SelectAllFilesCommand}"
+                        Visibility="{Binding HasFileResults, Converter={StaticResource BoolToVisibility}}"/>
+                <Button Content="反选" Style="{StaticResource SecondaryButton}" Padding="8,3" Margin="0,0,6,0"
+                        Command="{Binding InvertFileSelectionCommand}"
+                        Visibility="{Binding HasFileResults, Converter={StaticResource BoolToVisibility}}"/>
+                <Button Content="清空选择" Style="{StaticResource SecondaryButton}" Padding="8,3"
+                        Command="{Binding ClearFileSelectionCommand}"
+                        Visibility="{Binding HasFileResults, Converter={StaticResource BoolToVisibility}}"/>
+              </StackPanel>
 
-            <!-- 文件模式：空态提示 -->
-            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                       Foreground="{DynamicResource MutedBrush}" TextAlignment="Center"
-                       Visibility="{Binding HasFileResults, Converter={StaticResource InverseBoolToVisibility}}">
-              <Run Text="尚未加载配置" FontSize="14" FontWeight="SemiBold"/><LineBreak/>
-              <Run Text="点击上方「加载配置」按钮" FontSize="12"/>
-            </TextBlock>
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                          Visibility="{Binding HasFileResults, Converter={StaticResource InverseBoolToVisibility}}">
+                <TextBlock Text="尚未加载配置"
+                           Foreground="{DynamicResource MutedBrush}"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           TextAlignment="Center"/>
+                <TextBlock Text="点击上方“加载配置”按钮"
+                           Foreground="{DynamicResource MutedBrush}"
+                           FontSize="12"
+                           Margin="0,4,0,0"
+                           TextAlignment="Center"/>
+              </StackPanel>
 
-            <DataGrid ItemsSource="{Binding ConfigList}"
-                      PreviewMouseLeftButtonDown="OnSelectableDataGridPreviewMouseLeftButtonDown"
-                      Visibility="{Binding HasFileResults, Converter={StaticResource BoolToVisibility}}">
-              <DataGrid.Columns>
-                <DataGridTemplateColumn Header="选择" Width="54" IsReadOnly="False">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate>
-                      <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTextColumn Header="DataId" Binding="{Binding DataId}" Width="*" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Group" Binding="{Binding Group}" Width="150" IsReadOnly="True"/>
-                <DataGridTextColumn Header="类型" Binding="{Binding Type}" Width="80" IsReadOnly="True"/>
-              </DataGrid.Columns>
-            </DataGrid>
+              <DataGrid ItemsSource="{Binding ConfigList}"
+                        PreviewMouseLeftButtonDown="OnSelectableDataGridPreviewMouseLeftButtonDown"
+                        Margin="0,34,0,0"
+                        Visibility="{Binding HasFileResults, Converter={StaticResource BoolToVisibility}}">
+                <DataGrid.Columns>
+                  <DataGridTemplateColumn Header="选择" Width="54" IsReadOnly="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="DataId" Binding="{Binding DataId}" Width="*" IsReadOnly="True"/>
+                  <DataGridTextColumn Header="Group" Binding="{Binding Group}" Width="150" IsReadOnly="True"/>
+                  <DataGridTextColumn Header="类型" Binding="{Binding Type}" Width="80" IsReadOnly="True"/>
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
 
-            <!-- Key 模式：批量操作工具条 -->
-            <StackPanel Orientation="Horizontal" Margin="10,6"
-                        Visibility="{Binding SyncMode, Converter={StaticResource SyncModeToVisibilityConverter}, ConverterParameter=Key}">
-              <TextBlock Text="{Binding KeyListSummary}" VerticalAlignment="Center"
-                         Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="0,0,12,0"
-                         Visibility="{Binding HasKeyResults, Converter={StaticResource BoolToVisibility}}"/>
-              <Button Content="全选" Style="{StaticResource SecondaryButton}" Padding="8,3" Margin="0,0,6,0"
-                      Command="{Binding SelectAllKeysCommand}"
-                      Visibility="{Binding HasKeyResults, Converter={StaticResource BoolToVisibility}}"/>
-              <Button Content="反选" Style="{StaticResource SecondaryButton}" Padding="8,3" Margin="0,0,6,0"
-                      Command="{Binding InvertKeySelectionCommand}"
-                      Visibility="{Binding HasKeyResults, Converter={StaticResource BoolToVisibility}}"/>
-              <Button Content="清空选择" Style="{StaticResource SecondaryButton}" Padding="8,3" Margin="0,0,6,0"
-                      Command="{Binding ClearKeySelectionCommand}"
-                      Visibility="{Binding HasKeyResults, Converter={StaticResource BoolToVisibility}}"/>
-              <Border Width="1" Margin="6,4" Background="{DynamicResource LineBrush}"/>
-              <Button Content="全部仅同步 Key" Style="{StaticResource SecondaryButton}" Padding="8,3" Margin="0,0,6,0"
-                      Command="{Binding SetAllKeyStrategyKeyOnlyCommand}"
-                      Visibility="{Binding HasKeyResults, Converter={StaticResource BoolToVisibility}}"/>
-              <Button Content="全部同步整个文件" Style="{StaticResource SecondaryButton}" Padding="8,3"
-                      Command="{Binding SetAllKeyStrategyFullFileCommand}"
-                      Visibility="{Binding HasKeyResults, Converter={StaticResource BoolToVisibility}}"/>
-            </StackPanel>
+            <Grid Visibility="{Binding SyncMode, Converter={StaticResource SyncModeToVisibilityConverter}, ConverterParameter=Key}">
+              <StackPanel Orientation="Horizontal" Margin="10,6" VerticalAlignment="Top">
+                <TextBlock Text="{Binding KeyListSummary}" VerticalAlignment="Center"
+                           Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="0,0,12,0"
+                           Visibility="{Binding HasKeyResults, Converter={StaticResource BoolToVisibility}}"/>
+                <Button Content="全选" Style="{StaticResource SecondaryButton}" Padding="8,3" Margin="0,0,6,0"
+                        Command="{Binding SelectAllKeysCommand}"
+                        Visibility="{Binding HasKeyResults, Converter={StaticResource BoolToVisibility}}"/>
+                <Button Content="反选" Style="{StaticResource SecondaryButton}" Padding="8,3" Margin="0,0,6,0"
+                        Command="{Binding InvertKeySelectionCommand}"
+                        Visibility="{Binding HasKeyResults, Converter={StaticResource BoolToVisibility}}"/>
+                <Button Content="清空选择" Style="{StaticResource SecondaryButton}" Padding="8,3" Margin="0,0,6,0"
+                        Command="{Binding ClearKeySelectionCommand}"
+                        Visibility="{Binding HasKeyResults, Converter={StaticResource BoolToVisibility}}"/>
+                <Border Width="1" Margin="6,4" Background="{DynamicResource LineBrush}"/>
+                <Button Content="全部仅同步 Key" Style="{StaticResource SecondaryButton}" Padding="8,3" Margin="0,0,6,0"
+                        Command="{Binding SetAllKeyStrategyKeyOnlyCommand}"
+                        Visibility="{Binding HasKeyResults, Converter={StaticResource BoolToVisibility}}"/>
+                <Button Content="全部同步整个文件" Style="{StaticResource SecondaryButton}" Padding="8,3"
+                        Command="{Binding SetAllKeyStrategyFullFileCommand}"
+                        Visibility="{Binding HasKeyResults, Converter={StaticResource BoolToVisibility}}"/>
+              </StackPanel>
 
-            <!-- Key 模式：空态提示 -->
-            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                       Foreground="{DynamicResource MutedBrush}" TextAlignment="Center"
-                       Visibility="{Binding HasKeyResults, Converter={StaticResource InverseBoolToVisibility}}">
-              <Run Text="尚未扫描" FontSize="14" FontWeight="SemiBold"/><LineBreak/>
-              <Run Text="输入 Key 名称后点击「扫描」按钮" FontSize="12"/>
-            </TextBlock>
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                          Visibility="{Binding HasKeyResults, Converter={StaticResource InverseBoolToVisibility}}">
+                <TextBlock Text="尚未扫描"
+                           Foreground="{DynamicResource MutedBrush}"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           TextAlignment="Center"/>
+                <TextBlock Text="输入 Key 名称后点击“扫描”按钮"
+                           Foreground="{DynamicResource MutedBrush}"
+                           FontSize="12"
+                           Margin="0,4,0,0"
+                           TextAlignment="Center"/>
+              </StackPanel>
 
-            <DataGrid ItemsSource="{Binding KeyScanResults}"
-                      PreviewMouseLeftButtonDown="OnSelectableDataGridPreviewMouseLeftButtonDown"
-                      Visibility="{Binding HasKeyResults, Converter={StaticResource BoolToVisibility}}">
-              <DataGrid.Columns>
-                <DataGridTemplateColumn Header="选择" Width="54" IsReadOnly="False">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate>
-                      <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTextColumn Header="DataId" Binding="{Binding DataId}" Width="*" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Group" Binding="{Binding Group}" Width="120" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Key 路径" Binding="{Binding KeyPath}" Width="150" IsReadOnly="True"/>
-                <DataGridTemplateColumn Header="原值" Width="220" IsReadOnly="True">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate>
-                      <Button Style="{StaticResource ValuePreviewButton}"
-                              Tag="{Binding DisplayValue}"
-                              Click="OnCopyValueClick"
-                              ToolTipService.InitialShowDelay="120"
-                              ToolTipService.ShowDuration="60000">
-                        <Button.ToolTip>
-                          <ToolTip DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"
-                                   Placement="Mouse"
-                                   StaysOpen="False">
-                            <Border Background="{DynamicResource SurfaceRaisedBrush}"
-                                    BorderBrush="{DynamicResource LineStrongBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="6"
-                                    Padding="10"
-                                    MaxWidth="540">
-                              <Grid>
-                                <Grid.RowDefinitions>
-                                  <RowDefinition Height="Auto"/>
-                                  <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <Grid Grid.Row="0" Margin="0,0,0,8">
-                                  <TextBlock Text="原值" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
-                                  <Button Content="复制"
-                                          Tag="{Binding DisplayValue}"
-                                          Click="OnCopyValueClick"
-                                          Style="{StaticResource PrimaryButton}"
-                                          Padding="10,3"
-                                          MinHeight="24"
-                                          HorizontalAlignment="Right"/>
+              <DataGrid ItemsSource="{Binding KeyScanResults}"
+                        PreviewMouseLeftButtonDown="OnSelectableDataGridPreviewMouseLeftButtonDown"
+                        Margin="0,34,0,0"
+                        Visibility="{Binding HasKeyResults, Converter={StaticResource BoolToVisibility}}">
+                <DataGrid.Columns>
+                  <DataGridTemplateColumn Header="选择" Width="54" IsReadOnly="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTextColumn Header="DataId" Binding="{Binding DataId}" Width="*" IsReadOnly="True"/>
+                  <DataGridTextColumn Header="Group" Binding="{Binding Group}" Width="120" IsReadOnly="True"/>
+                  <DataGridTextColumn Header="Key 路径" Binding="{Binding KeyPath}" Width="150" IsReadOnly="True"/>
+                  <DataGridTemplateColumn Header="原值" Width="220" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <Button Style="{StaticResource ValuePreviewButton}"
+                                Tag="{Binding DisplayValue}"
+                                Click="OnCopyValueClick"
+                                ToolTipService.InitialShowDelay="120"
+                                ToolTipService.ShowDuration="60000">
+                          <Button.ToolTip>
+                            <ToolTip DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"
+                                     Placement="Mouse"
+                                     StaysOpen="False">
+                              <Border Background="{DynamicResource SurfaceRaisedBrush}"
+                                      BorderBrush="{DynamicResource LineStrongBrush}"
+                                      BorderThickness="1"
+                                      CornerRadius="6"
+                                      Padding="10"
+                                      MaxWidth="540">
+                                <Grid>
+                                  <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                  </Grid.RowDefinitions>
+                                  <Grid Grid.Row="0" Margin="0,0,0,8">
+                                    <TextBlock Text="原值" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
+                                    <Button Content="复制"
+                                            Tag="{Binding DisplayValue}"
+                                            Click="OnCopyValueClick"
+                                            Style="{StaticResource PrimaryButton}"
+                                            Padding="10,3"
+                                            MinHeight="24"
+                                            HorizontalAlignment="Right"/>
+                                  </Grid>
+                                  <TextBox Grid.Row="1"
+                                           Text="{Binding DisplayValue}"
+                                           IsReadOnly="True"
+                                           TextWrapping="Wrap"
+                                           AcceptsReturn="True"
+                                           VerticalScrollBarVisibility="Auto"
+                                           HorizontalScrollBarVisibility="Auto"
+                                           MaxHeight="240"
+                                           MinWidth="320"
+                                           MaxWidth="520"
+                                           FontFamily="Consolas, Microsoft YaHei UI"
+                                           FontSize="12"
+                                           Padding="8"/>
                                 </Grid>
-                                <TextBox Grid.Row="1"
-                                         Text="{Binding DisplayValue}"
-                                         IsReadOnly="True"
-                                         TextWrapping="Wrap"
-                                         AcceptsReturn="True"
-                                         VerticalScrollBarVisibility="Auto"
-                                         HorizontalScrollBarVisibility="Auto"
-                                         MaxHeight="240"
-                                         MinWidth="320"
-                                         MaxWidth="520"
-                                         FontFamily="Consolas, Microsoft YaHei UI"
-                                         FontSize="12"
-                                         Padding="8"/>
-                              </Grid>
-                            </Border>
-                          </ToolTip>
-                        </Button.ToolTip>
-                        <TextBlock Text="{Binding DisplayValue}"
-                                   TextTrimming="CharacterEllipsis"
-                                   VerticalAlignment="Center"/>
-                      </Button>
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="同步方式" Width="138" IsReadOnly="False">
-                  <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate>
-                      <ComboBox SelectedIndex="{Binding SyncStrategy, Converter={StaticResource KeySyncStrategyConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="2">
-                        <ComboBoxItem Content="仅同步 Key"/>
-                        <ComboBoxItem Content="同步整个文件"/>
-                      </ComboBox>
-                    </DataTemplate>
-                  </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-              </DataGrid.Columns>
-            </DataGrid>
+                              </Border>
+                            </ToolTip>
+                          </Button.ToolTip>
+                          <TextBlock Text="{Binding DisplayValue}"
+                                     TextTrimming="CharacterEllipsis"
+                                     VerticalAlignment="Center"/>
+                        </Button>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                  <DataGridTemplateColumn Header="同步方式" Width="138" IsReadOnly="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <ComboBox SelectedIndex="{Binding SyncStrategy, Converter={StaticResource KeySyncStrategyConverter}, UpdateSourceTrigger=PropertyChanged}" Margin="2">
+                          <ComboBoxItem Content="仅同步 Key"/>
+                          <ComboBoxItem Content="同步整个文件"/>
+                        </ComboBox>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
           </Grid>
         </Grid>
       </Grid>
