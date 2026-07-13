@@ -1,3 +1,4 @@
+using System.IO;
 using NacosSyncTool.Windows.Modules.RabbitMq.Models;
 using NacosSyncTool.Windows.Modules.RabbitMq.Services;
 using Xunit;
