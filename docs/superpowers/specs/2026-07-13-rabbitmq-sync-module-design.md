@@ -31,6 +31,7 @@ RabbitMQ 模块通过 RabbitMQ Management HTTP API，在两个 RabbitMQ 集群�
 - 不同步用户、角色、权限、Global Parameter、Shovel、Federation Upstream 等管理资源。
 - 不支持把源 Virtual Host 映射到不同名称的目标 Virtual Host。
 - 不更新、覆盖或删除目标端已有资源。
+- 不提供删除 Virtual Host、Queue、Exchange、Binding、Policy 或其他 RabbitMQ 资源的界面功能、命令或服务方法。
 - 不修改 Electron/Vue 版本。
 - 第一版不提供多套 RabbitMQ 连接配置档案管理。
 
@@ -344,10 +345,12 @@ DELETE /api/queues/{vhost}/{queue}/contents
 - 各 Queue 清理前的 Ready 数量。
 - 刷新后剩余的 Ready 和 Unacked 数量。
 
-### 12.5 DELETE 安全边界
+### 12.5 清理接口与无删除功能边界
 
-- 只有 `RabbitMqQueuePurgeService` 可以调用 DELETE。
-- DELETE 请求路径必须严格匹配 `/api/queues/{vhost}/{queue}/contents`。
+- 产品不提供任何 RabbitMQ 资源删除功能，不出现删除 Virtual Host、Queue、Exchange、Binding、Policy 或其他资源的按钮、菜单、命令或快捷入口。
+- API 客户端不实现删除 RabbitMQ 资源的方法，业务服务也不得通过通用请求方法绕过该限制。
+- 唯一允许使用 HTTP DELETE 方法的场景是 `RabbitMqQueuePurgeService` 调用 Queue 消息清理接口；该接口删除的是 Queue 内 Ready 消息，不是 Queue 资源本身。
+- 清理请求路径必须严格匹配 `/api/queues/{vhost}/{queue}/contents`。
 - HTTP 客户端在发送前必须执行路径白名单校验。
 - 禁止 DELETE Virtual Host、Queue 本身、Exchange、Binding、Policy 或其他 RabbitMQ 资源。
 - 拓扑同步相关客户端和执行器继续保持完全无 DELETE 权限。
@@ -533,6 +536,7 @@ Modules/RabbitMq/
 - 用户能够通过独立入口连接 RabbitMQ，选择 Virtual Host，并在一次明确确认后批量清除所有可访问 Queue 的 Ready 消息。
 - 消息清理不会清除 Unacked 消息，不会断开消费者，也不会删除 Queue。
 - 除 Queue `/contents` Purge 接口外，工具不会发送任何 DELETE 请求。
+- 界面和业务层不存在任何 RabbitMQ 资源删除功能；“清空队列消息”是唯一允许的清理操作。
 - RabbitMQ 单项失败不会使无依赖的其他资源停止同步。
 - Nacos 现有功能和测试保持正常。
 - 能生成可运行的 Windows x64 便携版本。
@@ -544,4 +548,5 @@ Modules/RabbitMq/
 - 模块化移动 Nacos 代码时不得顺带改变其同步行为。
 - 所有拓扑同步目标写操作必须由同步计划驱动，界面层不能直接调用创建 API；消息清理只能通过独立清理服务执行。
 - Queue 消息清理必须由独立服务执行，不能复用或绕过拓扑同步计划与执行器的安全边界。
+- 不得为了代码复用而加入通用资源删除方法；Management API 客户端必须以显式方法暴露允许的操作。
 - 任何会引入覆盖、删除拓扑资源、迁移消息、清理 Unacked 消息或跨名称 Virtual Host 映射的需求都属于后续独立设计范围。
