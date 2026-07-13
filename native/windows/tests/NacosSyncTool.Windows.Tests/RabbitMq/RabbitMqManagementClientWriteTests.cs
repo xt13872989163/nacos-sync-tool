@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http;
 using System.Text.Json;
 using NacosSyncTool.Windows.Modules.RabbitMq.Models;
 using NacosSyncTool.Windows.Modules.RabbitMq.Services;

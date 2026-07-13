@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http;
 using NacosSyncTool.Windows.Modules.RabbitMq.Models;
 
 namespace NacosSyncTool.Windows.Modules.RabbitMq.Services;
