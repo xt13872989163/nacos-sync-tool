@@ -144,39 +144,39 @@
         <TabItem Header="Exchange">
           <DataGrid ItemsSource="{Binding Exchanges}">
             <DataGrid.Columns>
-              <DataGridCheckBoxColumn Header="选择" Binding="{Binding IsSelected}" Width="55"/>
-              <DataGridTextColumn Header="名称" Binding="{Binding Resource.Name}" Width="*"/>
-              <DataGridTextColumn Header="类型" Binding="{Binding Resource.Type}" Width="100"/>
-              <DataGridCheckBoxColumn Header="Durable" Binding="{Binding Resource.Durable}" Width="75"/>
+              <DataGridCheckBoxColumn Header="选择" Binding="{Binding IsSelected}" Width="55" IsReadOnly="False"/>
+              <DataGridTextColumn Header="名称" Binding="{Binding Resource.Name}" Width="*" IsReadOnly="True"/>
+              <DataGridTextColumn Header="类型" Binding="{Binding Resource.Type}" Width="100" IsReadOnly="True"/>
+              <DataGridCheckBoxColumn Header="Durable" Binding="{Binding Resource.Durable}" Width="75" IsReadOnly="True"/>
             </DataGrid.Columns>
           </DataGrid>
         </TabItem>
         <TabItem Header="Queue">
           <DataGrid ItemsSource="{Binding Queues}">
             <DataGrid.Columns>
-              <DataGridCheckBoxColumn Header="选择" Binding="{Binding IsSelected}" Width="55"/>
-              <DataGridTextColumn Header="名称" Binding="{Binding Resource.Name}" Width="*"/>
-              <DataGridCheckBoxColumn Header="Durable" Binding="{Binding Resource.Durable}" Width="75"/>
+              <DataGridCheckBoxColumn Header="选择" Binding="{Binding IsSelected}" Width="55" IsReadOnly="False"/>
+              <DataGridTextColumn Header="名称" Binding="{Binding Resource.Name}" Width="*" IsReadOnly="True"/>
+              <DataGridCheckBoxColumn Header="Durable" Binding="{Binding Resource.Durable}" Width="75" IsReadOnly="True"/>
             </DataGrid.Columns>
           </DataGrid>
         </TabItem>
         <TabItem Header="Binding">
           <DataGrid ItemsSource="{Binding Bindings}">
             <DataGrid.Columns>
-              <DataGridCheckBoxColumn Header="选择" Binding="{Binding IsSelected}" Width="55"/>
-              <DataGridTextColumn Header="来源" Binding="{Binding Resource.Source}" Width="*"/>
-              <DataGridTextColumn Header="目标" Binding="{Binding Resource.Destination}" Width="*"/>
-              <DataGridTextColumn Header="Routing Key" Binding="{Binding Resource.RoutingKey}" Width="150"/>
+              <DataGridCheckBoxColumn Header="选择" Binding="{Binding IsSelected}" Width="55" IsReadOnly="False"/>
+              <DataGridTextColumn Header="来源" Binding="{Binding Resource.Source}" Width="*" IsReadOnly="True"/>
+              <DataGridTextColumn Header="目标" Binding="{Binding Resource.Destination}" Width="*" IsReadOnly="True"/>
+              <DataGridTextColumn Header="Routing Key" Binding="{Binding Resource.RoutingKey}" Width="150" IsReadOnly="True"/>
             </DataGrid.Columns>
           </DataGrid>
         </TabItem>
         <TabItem Header="Policy">
           <DataGrid ItemsSource="{Binding Policies}">
             <DataGrid.Columns>
-              <DataGridCheckBoxColumn Header="选择" Binding="{Binding IsSelected}" Width="55"/>
-              <DataGridTextColumn Header="名称" Binding="{Binding Resource.Name}" Width="*"/>
-              <DataGridTextColumn Header="Pattern" Binding="{Binding Resource.Pattern}" Width="*"/>
-              <DataGridTextColumn Header="Priority" Binding="{Binding Resource.Priority}" Width="80"/>
+              <DataGridCheckBoxColumn Header="选择" Binding="{Binding IsSelected}" Width="55" IsReadOnly="False"/>
+              <DataGridTextColumn Header="名称" Binding="{Binding Resource.Name}" Width="*" IsReadOnly="True"/>
+              <DataGridTextColumn Header="Pattern" Binding="{Binding Resource.Pattern}" Width="*" IsReadOnly="True"/>
+              <DataGridTextColumn Header="Priority" Binding="{Binding Resource.Priority}" Width="80" IsReadOnly="True"/>
             </DataGrid.Columns>
           </DataGrid>
         </TabItem>
@@ -209,8 +209,12 @@
             <TextBlock Text="{Binding ReadyTotal, StringFormat='Ready {0}'}" Margin="18,0,0,0" VerticalAlignment="Center"/>
             <TextBlock Text="{Binding UnackedTotal, StringFormat='Unacked {0}'}" Margin="12,0,0,0" VerticalAlignment="Center"/>
           </StackPanel>
-          <Button Grid.Column="1" Content="一键清空 Ready 消息" Style="{StaticResource DangerButton}"
-                  Command="{Binding PurgeAllReadyMessagesCommand}" Padding="18,7"/>
+          <StackPanel Grid.Column="1" Orientation="Horizontal">
+            <Button Content="一键清空 Ready 消息" Style="{StaticResource DangerButton}"
+                    Command="{Binding PurgeAllReadyMessagesCommand}" Padding="18,7"/>
+            <Button Content="取消" Margin="8,0,0,0" Style="{StaticResource SecondaryButton}"
+                    Command="{Binding CancelCommand}"/>
+          </StackPanel>
           <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding PurgeSummary}"
                      Margin="0,7,0,0" Foreground="{DynamicResource MutedBrush}"/>
         </Grid>
@@ -238,10 +242,17 @@
       </Grid>
     </Border>
 
-    <Border Grid.RowSpan="4" Background="#CC202020" CornerRadius="8" Padding="18"
-            HorizontalAlignment="Center" VerticalAlignment="Center"
-            Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}">
-      <StackPanel><TextBlock Text="{Binding BusyText}" Foreground="White" FontWeight="SemiBold"/><TextBlock Text="{Binding ProgressText}" Foreground="#DDFFFFFF" Margin="0,5,0,0"/></StackPanel>
-    </Border>
+    <Grid Grid.RowSpan="4" Background="#66000000" Panel.ZIndex="100" IsHitTestVisible="True"
+          Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}">
+      <Border Background="#EE202020" CornerRadius="8" Padding="18"
+              HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel>
+          <TextBlock Text="{Binding BusyText}" Foreground="White" FontWeight="SemiBold"/>
+          <TextBlock Text="{Binding ProgressText}" Foreground="#DDFFFFFF" Margin="0,5,0,0"/>
+          <Button Content="取消" Margin="0,12,0,0" Style="{StaticResource SecondaryButton}"
+                  Command="{Binding CancelCommand}"/>
+        </StackPanel>
+      </Border>
+    </Grid>
   </Grid>
 </UserControl>

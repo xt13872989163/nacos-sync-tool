@@ -643,6 +643,6 @@
   </Grid>
   <rabbitViews:RabbitMqModuleView DataContext="{Binding RabbitMq}"
                                   BackToNacosRequested="OnBackToNacosRequested"
-                                  Visibility="{Binding IsRabbitMqSelected, Converter={StaticResource BoolToVisibility}}"/>
+                                  Visibility="{Binding DataContext.IsRabbitMqSelected, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVisibility}}"/>
   </Grid>
 </Window>
