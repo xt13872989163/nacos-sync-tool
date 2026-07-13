@@ -1,0 +1,26 @@
+<Window x:Class="NacosSyncTool.Windows.Modules.RabbitMq.Views.RabbitMqConfirmDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Width="470" SizeToContent="Height" MaxHeight="620"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        Background="{DynamicResource BgBrush}" ShowInTaskbar="False">
+  <Grid Margin="20">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <TextBlock x:Name="TitleText" FontSize="17" FontWeight="SemiBold"
+               Foreground="{DynamicResource TextBrush}"/>
+    <TextBlock x:Name="BodyText" Grid.Row="1" Margin="0,14,0,18"
+               TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}"/>
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+      <Button x:Name="CancelButton" Content="取消" IsCancel="True"
+              Style="{StaticResource SecondaryButton}" Padding="18,7"
+              Click="OnCancelClick"/>
+      <Button x:Name="ConfirmButton" Margin="10,0,0,0" Padding="18,7"
+              Style="{StaticResource PrimaryButton}" Click="OnConfirmClick"/>
+    </StackPanel>
+  </Grid>
+</Window>

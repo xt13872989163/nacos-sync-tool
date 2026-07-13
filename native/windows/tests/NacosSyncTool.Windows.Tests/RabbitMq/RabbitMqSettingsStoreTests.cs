@@ -10,6 +10,7 @@ public sealed class RabbitMqSettingsStoreTests
     [Fact]
     public async Task StoresRolesSeparatelyAndNeverWritesPlaintextPasswords()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
         var directory = Path.Combine(Path.GetTempPath(), $"rabbitmq-settings-{Guid.NewGuid():N}");
         var path = Path.Combine(directory, "settings.json");
         var store = new RabbitMqSettingsStore(path);
@@ -18,14 +19,14 @@ public sealed class RabbitMqSettingsStoreTests
             await store.SaveAsync(
                 RabbitMqClientRole.SourceReadOnly,
                 Connection("http://source:15672", "source-secret"),
-                CancellationToken.None);
+                cancellationToken);
             await store.SaveAsync(
                 RabbitMqClientRole.QueuePurge,
                 Connection("http://purge:15672", "purge-secret"),
-                CancellationToken.None);
+                cancellationToken);
 
-            var source = await store.LoadAsync(RabbitMqClientRole.SourceReadOnly, CancellationToken.None);
-            var purge = await store.LoadAsync(RabbitMqClientRole.QueuePurge, CancellationToken.None);
+            var source = await store.LoadAsync(RabbitMqClientRole.SourceReadOnly, cancellationToken);
+            var purge = await store.LoadAsync(RabbitMqClientRole.QueuePurge, cancellationToken);
             var json = await File.ReadAllTextAsync(path);
 
             Assert.Equal("http://source:15672", source!.Address);
@@ -34,9 +35,9 @@ public sealed class RabbitMqSettingsStoreTests
             Assert.DoesNotContain("source-secret", json);
             Assert.DoesNotContain("purge-secret", json);
 
-            await store.ClearAsync(RabbitMqClientRole.QueuePurge, CancellationToken.None);
-            Assert.NotNull(await store.LoadAsync(RabbitMqClientRole.SourceReadOnly, CancellationToken.None));
-            Assert.Null(await store.LoadAsync(RabbitMqClientRole.QueuePurge, CancellationToken.None));
+            await store.ClearAsync(RabbitMqClientRole.QueuePurge, cancellationToken);
+            Assert.NotNull(await store.LoadAsync(RabbitMqClientRole.SourceReadOnly, cancellationToken));
+            Assert.Null(await store.LoadAsync(RabbitMqClientRole.QueuePurge, cancellationToken));
         }
         finally
         {

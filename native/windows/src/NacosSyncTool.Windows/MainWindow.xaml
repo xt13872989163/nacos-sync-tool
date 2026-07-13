@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:models="clr-namespace:NacosSyncTool.Windows.Models"
         xmlns:converters="clr-namespace:NacosSyncTool.Windows.Converters"
-        Title="Nacos Sync Tool"
+        xmlns:rabbitViews="clr-namespace:NacosSyncTool.Windows.Modules.RabbitMq.Views"
+        Title="Nacos / RabbitMQ Sync Tool"
         Height="720"
         Width="1060"
         MinHeight="680"
@@ -25,7 +26,10 @@
     <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
   </Window.Resources>
 
-  <Grid Margin="14">
+  <Grid>
+  <Grid x:Name="NacosModuleRoot" Margin="14"
+        DataContext="{Binding Nacos}"
+        Visibility="{Binding DataContext.IsNacosSelected, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVisibility}}">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
@@ -58,6 +62,13 @@
           <TextBlock Text="{x:Static models:AppMetadata.VersionLabel}"
                      Foreground="{DynamicResource FaintBrush}" FontSize="11"
                      VerticalAlignment="Top" Margin="12,3,0,0"/>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <Button Content="Nacos" Style="{StaticResource PrimaryButton}" Padding="16,6"
+                  Command="{Binding DataContext.SelectNacosCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+          <Button Content="RabbitMQ" Style="{StaticResource SecondaryButton}" Padding="16,6" Margin="8,0,0,0"
+                  Command="{Binding DataContext.SelectRabbitMqCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
         </StackPanel>
 
         <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -629,5 +640,9 @@
                  FontWeight="SemiBold"
                  FontSize="12"/>
     </Border>
+  </Grid>
+  <rabbitViews:RabbitMqModuleView DataContext="{Binding RabbitMq}"
+                                  BackToNacosRequested="OnBackToNacosRequested"
+                                  Visibility="{Binding IsRabbitMqSelected, Converter={StaticResource BoolToVisibility}}"/>
   </Grid>
 </Window>

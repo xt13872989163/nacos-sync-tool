@@ -51,7 +51,7 @@ public sealed class RabbitMqPlanBuilderTests
             Set(),
             Set(binding.Identity));
 
-        var item = Assert.Single(plan.Items.Where(candidate => candidate.Type == RabbitMqResourceType.Binding));
+        var item = Assert.Single(plan.Items, candidate => candidate.Type == RabbitMqResourceType.Binding);
         Assert.Equal(RabbitMqPlanStatus.MissingDependency, item.Status);
     }
 

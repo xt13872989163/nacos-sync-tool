@@ -10,14 +10,20 @@ namespace NacosSyncTool.Windows;
 
 public partial class MainWindow : Window
 {
-    private MainViewModel ViewModel => (MainViewModel)DataContext;
+    private ShellViewModel Shell => (ShellViewModel)DataContext;
+    private MainViewModel ViewModel => Shell.Nacos;
 
     public MainWindow()
     {
         InitializeComponent();
 
         // 获取 ViewModel 并设置为 DataContext
-        DataContext = App.ServiceProvider.GetService(typeof(MainViewModel));
+        DataContext = App.ServiceProvider.GetService(typeof(ShellViewModel));
+    }
+
+    private void OnBackToNacosRequested(object? sender, EventArgs e)
+    {
+        Shell.SelectedModule = AppModule.Nacos;
     }
 
     private void OnThemeChanged(object sender, SelectionChangedEventArgs e)

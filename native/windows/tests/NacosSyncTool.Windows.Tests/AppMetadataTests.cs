@@ -8,7 +8,7 @@ public sealed class AppMetadataTests
     [Fact]
     public void ProductNameIdentifiesNativeWindowsEdition()
     {
-        Assert.Equal("Nacos Sync Tool Native Windows", AppMetadata.ProductName);
+        Assert.Equal("Nacos / RabbitMQ Sync Tool Native Windows", AppMetadata.ProductName);
     }
 
     [Fact]

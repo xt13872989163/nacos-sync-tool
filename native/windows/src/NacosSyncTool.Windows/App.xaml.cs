@@ -19,9 +19,16 @@ public partial class App : Application
         // 注册服务
         services.AddSingleton<Services.LogService>();
         services.AddSingleton<Services.NacosApiService>();
+        services.AddSingleton<Modules.RabbitMq.Services.RabbitMqLogService>();
+        services.AddSingleton<Modules.RabbitMq.Services.RabbitMqSettingsStore>();
+        services.AddSingleton<Modules.RabbitMq.Services.RabbitMqPlanBuilder>();
+        services.AddSingleton<Modules.RabbitMq.Services.IRabbitMqClientFactory, Modules.RabbitMq.Services.RabbitMqClientFactory>();
+        services.AddSingleton<Modules.RabbitMq.Services.IRabbitMqConfirmationService, Modules.RabbitMq.Services.RabbitMqConfirmationService>();
 
         // 注册 ViewModels
         services.AddSingleton<ViewModels.MainViewModel>();
+        services.AddSingleton<Modules.RabbitMq.ViewModels.RabbitMqModuleViewModel>();
+        services.AddSingleton<ViewModels.ShellViewModel>();
     }
 
     public static void SwitchTheme(string themeName)
