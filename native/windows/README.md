@@ -10,6 +10,17 @@
 - ✅ 更好的 Windows 系统集成
 - ✅ 更快的启动速度
 
+## RabbitMQ 模块
+
+应用顶部可以在 Nacos 与 RabbitMQ 模块之间切换。RabbitMQ 模块通过 Management HTTP API 工作，需要启用 `rabbitmq_management` 插件。
+
+提供两类操作：
+
+1. 拓扑同步：同步同名 Virtual Host 下缺失的 Exchange、Queue、Binding 和 Policy。目标同名资源直接跳过，绝不覆盖或删除。
+2. 队列消息清理：独立连接 RabbitMQ，选择 Virtual Host 后批量清空所有 Queue 的 Ready 消息。Unacked 消息和消费者连接保持不变。
+
+程序不提供删除 Virtual Host、Queue、Exchange、Binding、Policy 等资源的功能。HTTP DELETE 仅用于 Queue `/contents` 消息清理接口，不会删除 Queue 本身。
+
 ## 技术栈
 
 - **.NET 10.0** - 最新的 .NET 框架

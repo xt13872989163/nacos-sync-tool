@@ -70,6 +70,13 @@ public partial class RabbitMqModuleViewModel : ObservableObject
 
     public bool IsTopologyMode => OperationMode == RabbitMqOperationMode.TopologySync;
     public bool IsPurgeMode => OperationMode == RabbitMqOperationMode.QueuePurge;
+    public bool IsSelectiveMode
+    {
+        get => SelectionMode == RabbitMqSelectionMode.SelectedResources;
+        set => SelectionMode = value
+            ? RabbitMqSelectionMode.SelectedResources
+            : RabbitMqSelectionMode.WholeVirtualHost;
+    }
 
     public RabbitMqModuleViewModel(
         IRabbitMqClientFactory clientFactory,
@@ -293,7 +300,11 @@ public partial class RabbitMqModuleViewModel : ObservableObject
 
     partial void OnIsBusyChanged(bool value) => ExecutePlanCommand.NotifyCanExecuteChanged();
 
-    partial void OnSelectionModeChanged(RabbitMqSelectionMode value) => InvalidatePlan();
+    partial void OnSelectionModeChanged(RabbitMqSelectionMode value)
+    {
+        OnPropertyChanged(nameof(IsSelectiveMode));
+        InvalidatePlan();
+    }
 
     partial void OnSelectedSourceVirtualHostChanged(RabbitMqVirtualHost? value)
     {

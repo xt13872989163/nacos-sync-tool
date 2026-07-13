@@ -453,3 +453,18 @@ npm run pack:mac
 - 应用内可随时修改。
 
 该方案既满足 Windows 用户希望日志放在 D 盘的习惯，也兼顾 Mac 的安装方式，适合双平台统一维护。
+
+## RabbitMQ 原生 Windows 模块
+
+原生 Windows 版同时提供 RabbitMQ 工具模块，可在应用顶部与 Nacos 模块切换，两个模块的连接状态和日志互不影响。
+
+RabbitMQ 功能要求源端、目标端或消息清理操作端启用 `rabbitmq_management`，并提供可访问的 Management HTTP API 地址。
+
+拓扑同步支持同名 Virtual Host 下的 Exchange、Queue、Binding 和 Policy，只创建目标端缺失资源：
+
+- 同名 Virtual Host、Exchange、Queue 和 Policy 直接跳过，不比较或覆盖配置。
+- Binding 按来源、目标、目标类型和 Routing Key 判断。
+- 不删除、更新或覆盖任何 RabbitMQ 拓扑资源。
+- 不迁移 Queue 中的消息。
+
+“队列消息清理”是独立功能，可以一次清空所选 Virtual Host 下全部可访问 Queue 的 Ready 消息。它不会删除 Queue，不会清除 Unacked 消息，也不会主动断开消费者。唯一允许的 HTTP DELETE 请求是 RabbitMQ 官方 Queue `/contents` Purge 接口。

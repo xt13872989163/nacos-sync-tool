@@ -27,7 +27,7 @@ public sealed class RabbitMqSettingsStoreTests
 
             var source = await store.LoadAsync(RabbitMqClientRole.SourceReadOnly, cancellationToken);
             var purge = await store.LoadAsync(RabbitMqClientRole.QueuePurge, cancellationToken);
-            var json = await File.ReadAllTextAsync(path);
+            var json = await File.ReadAllTextAsync(path, cancellationToken);
 
             Assert.Equal("http://source:15672", source!.Address);
             Assert.Equal("source-secret", source.Password);

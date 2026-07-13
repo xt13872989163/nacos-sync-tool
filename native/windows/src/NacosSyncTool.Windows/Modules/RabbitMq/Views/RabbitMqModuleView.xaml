@@ -113,6 +113,7 @@
       <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
       <Border Grid.Row="0" Style="{StaticResource WorkbenchShell}" Padding="12" Margin="0,0,0,8">
         <Grid>
+          <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
           <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="源 Virtual Host" VerticalAlignment="Center" Margin="0,0,8,0"/>
@@ -121,6 +122,8 @@
             <TextBlock Text="目标同名状态：" VerticalAlignment="Center" Margin="16,0,4,0"/>
             <TextBlock Text="{Binding TargetVirtualHostStatus}" VerticalAlignment="Center"
                        Foreground="{DynamicResource MutedBrush}"/>
+            <CheckBox Content="选择性同步" IsChecked="{Binding IsSelectiveMode}"
+                      Margin="16,0,0,0" VerticalAlignment="Center"/>
             <Button Content="加载资源" Margin="16,0,0,0" Style="{StaticResource SecondaryButton}"
                     Command="{Binding RefreshResourcesCommand}"/>
           </StackPanel>
@@ -128,9 +131,13 @@
             <Button Content="生成预览" Style="{StaticResource SecondaryButton}" Command="{Binding BuildPlanCommand}"/>
             <Button Content="执行同步" Margin="8,0,0,0" Style="{StaticResource PrimaryButton}"
                     Command="{Binding ExecutePlanCommand}"/>
+            <Button Content="重试失败项" Margin="8,0,0,0" Style="{StaticResource SecondaryButton}"
+                    Command="{Binding RetryFailedCommand}"/>
             <Button Content="取消" Margin="8,0,0,0" Style="{StaticResource SecondaryButton}"
                     Command="{Binding CancelCommand}"/>
           </StackPanel>
+          <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding PlanSummary}"
+                     Margin="0,7,0,0" Foreground="{DynamicResource MutedBrush}"/>
         </Grid>
       </Border>
       <TabControl Grid.Row="1">
@@ -193,6 +200,7 @@
       </Border>
       <Border Grid.Row="1" Style="{StaticResource WorkbenchShell}" Padding="12" Margin="0,10,0,8">
         <Grid>
+          <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
           <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Virtual Host" VerticalAlignment="Center" Margin="0,0,8,0"/>
@@ -203,6 +211,8 @@
           </StackPanel>
           <Button Grid.Column="1" Content="一键清空 Ready 消息" Style="{StaticResource DangerButton}"
                   Command="{Binding PurgeAllReadyMessagesCommand}" Padding="18,7"/>
+          <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding PurgeSummary}"
+                     Margin="0,7,0,0" Foreground="{DynamicResource MutedBrush}"/>
         </Grid>
       </Border>
       <DataGrid Grid.Row="2" ItemsSource="{Binding PurgeQueues}" IsReadOnly="True">
