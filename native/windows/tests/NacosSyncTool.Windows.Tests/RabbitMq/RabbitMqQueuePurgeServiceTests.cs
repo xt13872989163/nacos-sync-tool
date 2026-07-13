@@ -23,9 +23,34 @@ public sealed class RabbitMqQueuePurgeServiceTests
         Assert.Equal(15, preview.ReadyTotal);
         Assert.Equal(5, preview.UnackedTotal);
         Assert.Equal(2, result.SucceededCount);
+        Assert.True(result.StatisticsRefreshed);
         Assert.Equal(0, result.ReadyAfter);
         Assert.Equal(5, result.UnackedAfter);
         Assert.Equal(2, client.Calls.Count(call => call.StartsWith("PurgeQueue", StringComparison.Ordinal)));
+    }
+
+    [Fact]
+    public async Task RefreshFailureReportsUnknownCountsInsteadOfZero()
+    {
+        var client = new FakeRabbitMqManagementClient
+        {
+            FailureForCall = call => call.StartsWith("GetQueues", StringComparison.Ordinal)
+                ? new HttpRequestException("refresh failed")
+                : null
+        };
+        var preview = new RabbitMqQueuePurgePreview(
+            "/",
+            [Queue("orders", 4, 2)],
+            4,
+            2);
+
+        var result = await new RabbitMqQueuePurgeService(client)
+            .ExecuteAsync(preview, null, CancellationToken.None);
+
+        Assert.Equal(1, result.SucceededCount);
+        Assert.False(result.StatisticsRefreshed);
+        Assert.Null(result.ReadyAfter);
+        Assert.Null(result.UnackedAfter);
     }
 
     [Fact]

@@ -22,9 +22,10 @@ public sealed class RabbitMqViewBindingTests
                  })
             Assert.Contains(command, xaml);
 
-        Assert.DoesNotContain("DeleteQueueCommand", xaml);
-        Assert.DoesNotContain("DeleteVirtualHostCommand", xaml);
-        Assert.DoesNotContain("删除 Queue", xaml);
-        Assert.DoesNotContain("删除 Virtual Host", xaml);
+        foreach (var resource in new[] { "VirtualHost", "Queue", "Exchange", "Binding", "Policy" })
+            Assert.DoesNotContain($"Delete{resource}Command", xaml);
+
+        foreach (var resource in new[] { "Virtual Host", "Queue", "Exchange", "Binding", "Policy" })
+            Assert.DoesNotContain($"删除 {resource}", xaml);
     }
 }

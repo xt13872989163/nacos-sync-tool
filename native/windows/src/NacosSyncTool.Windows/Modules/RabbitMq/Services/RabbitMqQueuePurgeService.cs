@@ -81,25 +81,34 @@ public sealed class RabbitMqQueuePurgeService
             }
         }
 
-        var refreshed = await TryRefreshAsync(preview.VirtualHost);
+        var (statisticsRefreshed, refreshed) = await TryRefreshAsync(preview.VirtualHost);
+        long? readyAfter = statisticsRefreshed
+            ? refreshed.Sum(item => item.MessagesReady)
+            : null;
+        long? unackedAfter = statisticsRefreshed
+            ? refreshed.Sum(item => item.MessagesUnacknowledged)
+            : null;
         progress?.Report((results.Count, preview.Queues.Count, string.Empty));
         return new RabbitMqQueuePurgeSummary(
             preview.VirtualHost,
             results,
-            refreshed.Sum(item => item.MessagesReady),
-            refreshed.Sum(item => item.MessagesUnacknowledged),
+            readyAfter,
+            unackedAfter,
+            statisticsRefreshed,
             cancelled);
     }
 
-    private async Task<IReadOnlyList<RabbitMqQueue>> TryRefreshAsync(string virtualHost)
+    private async Task<(bool Succeeded, IReadOnlyList<RabbitMqQueue> Queues)> TryRefreshAsync(
+        string virtualHost)
     {
         try
         {
-            return await _loader.LoadPurgeQueuesAsync(virtualHost, CancellationToken.None);
+            var queues = await _loader.LoadPurgeQueuesAsync(virtualHost, CancellationToken.None);
+            return (true, queues);
         }
         catch
         {
-            return Array.Empty<RabbitMqQueue>();
+            return (false, Array.Empty<RabbitMqQueue>());
         }
     }
 

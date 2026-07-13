@@ -275,7 +275,10 @@ public partial class RabbitMqModuleViewModel : ObservableObject
             var progress = new Progress<(int Completed, int Total, string Current)>(value =>
                 ProgressText = $"{value.Completed}/{value.Total} {value.Current}");
             var summary = await service.ExecuteAsync(preview, progress, cancellationToken);
-            PurgeSummary = $"成功 {summary.SucceededCount}｜失败 {summary.FailedCount}｜剩余 Ready {summary.ReadyAfter}｜Unacked {summary.UnackedAfter}";
+            var remaining = summary.StatisticsRefreshed
+                ? $"剩余 Ready {summary.ReadyAfter}｜Unacked {summary.UnackedAfter}"
+                : "剩余消息统计刷新失败，请手动刷新确认";
+            PurgeSummary = $"成功 {summary.SucceededCount}｜失败 {summary.FailedCount}｜{remaining}";
             _logService.Warning($"Queue 消息清理结束：{PurgeSummary}");
         });
         await RefreshPurgeQueuesAsync();

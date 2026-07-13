@@ -15,8 +15,9 @@ public sealed record RabbitMqQueuePurgeItem(
 public sealed record RabbitMqQueuePurgeSummary(
     string VirtualHost,
     IReadOnlyList<RabbitMqQueuePurgeItem> Items,
-    long ReadyAfter,
-    long UnackedAfter,
+    long? ReadyAfter,
+    long? UnackedAfter,
+    bool StatisticsRefreshed,
     bool Cancelled)
 {
     public int SucceededCount => Items.Count(item => item.Status == RabbitMqExecutionStatus.Succeeded);
