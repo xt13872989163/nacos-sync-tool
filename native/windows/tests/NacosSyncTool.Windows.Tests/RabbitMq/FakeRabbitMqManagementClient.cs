@@ -9,6 +9,7 @@ internal sealed class FakeRabbitMqManagementClient : IRabbitMqManagementClient
     public IReadOnlyList<RabbitMqVirtualHost> VirtualHosts { get; set; } = [];
     public IReadOnlyList<RabbitMqExchange> Exchanges { get; set; } = [];
     public IReadOnlyList<RabbitMqQueue> Queues { get; set; } = [];
+    public Queue<IReadOnlyList<RabbitMqQueue>> QueueResponses { get; } = new();
     public IReadOnlyList<RabbitMqBinding> Bindings { get; set; } = [];
     public IReadOnlyList<RabbitMqPolicy> Policies { get; set; } = [];
     public List<string> Calls { get; } = [];
@@ -24,7 +25,9 @@ internal sealed class FakeRabbitMqManagementClient : IRabbitMqManagementClient
         ReturnAsync($"GetExchanges:{virtualHost}", Exchanges);
 
     public Task<IReadOnlyList<RabbitMqQueue>> GetQueuesAsync(string virtualHost, CancellationToken cancellationToken) =>
-        ReturnAsync($"GetQueues:{virtualHost}", Queues);
+        ReturnAsync(
+            $"GetQueues:{virtualHost}",
+            QueueResponses.Count > 0 ? QueueResponses.Dequeue() : Queues);
 
     public Task<IReadOnlyList<RabbitMqBinding>> GetBindingsAsync(string virtualHost, CancellationToken cancellationToken) =>
         ReturnAsync($"GetBindings:{virtualHost}", Bindings);

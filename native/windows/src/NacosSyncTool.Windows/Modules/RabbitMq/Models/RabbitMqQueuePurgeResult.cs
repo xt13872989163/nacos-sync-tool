@@ -19,6 +19,6 @@ public sealed record RabbitMqQueuePurgeSummary(
     long UnackedAfter,
     bool Cancelled)
 {
-    public int SucceededCount => Items.Count(item => item.Status == RabbitMqExecutionStatus.Created);
+    public int SucceededCount => Items.Count(item => item.Status == RabbitMqExecutionStatus.Succeeded);
     public int FailedCount => Items.Count(item => item.Status == RabbitMqExecutionStatus.Failed);
 }

@@ -21,6 +21,7 @@ public enum RabbitMqPlanStatus
 public enum RabbitMqExecutionStatus
 {
     Created,
+    Succeeded,
     Skipped,
     Failed,
     Cancelled,
